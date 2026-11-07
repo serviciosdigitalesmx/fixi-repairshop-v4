@@ -196,7 +196,7 @@ jobs:
   publish:
     name: Publish immutable Fixi 4V image
     needs: [backend, frontend, docker, e2e]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/fixi-repairshop'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -205,11 +205,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build immutable image
         run: |
-          docker build --label org.opencontainers.image.revision="$GITHUB_SHA" --label org.opencontainers.image.title="Fixi 4V" -t "ghcr.io/serviciosdigitalesmx/fixi-monolith:4v-$GITHUB_SHA" backend
+          docker build --label org.opencontainers.image.revision="$GITHUB_SHA" --label org.opencontainers.image.title="Fixi 4V" --label org.opencontainers.image.source="https://github.com/serviciosdigitalesmx/fixi-repairshop-v4" -t "ghcr.io/serviciosdigitalesmx/fixi-repairshop-v4:4v-$GITHUB_SHA" backend
       - name: Publish image
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker push "ghcr.io/serviciosdigitalesmx/fixi-monolith:4v-$GITHUB_SHA"
+          IMAGE="ghcr.io/serviciosdigitalesmx/fixi-repairshop-v4:4v-$GITHUB_SHA"
+          PUSH_RESULT="$(docker push "$IMAGE" 2>&1)"
+          printf '%s\n' "$PUSH_RESULT"
+          DIGEST="$(printf '%s\n' "$PUSH_RESULT" | awk '{for (i=1; i<=NF; i++) if ($i == "digest:") print $(i+1)}' | tail -n 1)"
+          test -n "$DIGEST"
+          printf 'VPS image: `ghcr.io/serviciosdigitalesmx/fixi-repairshop-v4@%s`\n' "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
           docker logout ghcr.io

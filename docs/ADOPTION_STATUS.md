@@ -1,32 +1,29 @@
-# Fixi 4V · 1.0 — adopción de RepairShop
+# Fixi 4V — estado de independencia y producción
 
-## Decisión
+## Código y procedencia
 
-Por instrucción del propietario, la base completa de RepairShop pasa a ser el nuevo producto Fixi 4V, versión 1.0; Fixi 3V es el producto anterior en `codex/fixi-repairshop`. No es un frontend para el backend Spring anterior: incluye su propio backend .NET, esquema PostgreSQL, autenticación y frontend.
+- Repositorio independiente: `serviciosdigitalesmx/fixi-repairshop-v4`.
+- Rama estable: `main`.
+- Snapshot de origen: `serviciosdigitalesmx/hotel-pms-mexico`, rama `codex/fixi-repairshop`, commit `1b275ea6cbd116fff35d1051dd3d4f1b0f92ee8e`.
+- El commit inicial de extracción contiene el árbol del producto Fixi 4V; no arrastra el historial del PMS al repositorio nuevo.
+- Stack del producto: frontend React/TypeScript/Vite, API ASP.NET Core 8 y PostgreSQL.
 
-## Archivo del producto anterior
+## Estado observado de producción al 7 de noviembre de 2026
 
-- Checkout conservado: `D:\Projects\hotel-pms-mexico`.
-- Rama conservada: `codex/fixi-monolith`.
-- Base remota al iniciar la adopción: `15761a0e1f3d22b5b689467c7db636584bb8d257`.
-- HEAD local de ese checkout: `2b885ae57ad9007b09e2d9bf9ecb1621ae5fd973`, con sus cambios locales preexistentes.
-- El historial anterior sigue siendo ancestro de esta rama; no se reescribió ni fusionó en main.
-- Sus cambios no rastreados y stash permanecen en el checkout anterior. No forman parte de esta importación.
-- Producción anterior continúa operando; no se ha realizado el corte.
+- La API `https://api-fixi.serviciosdigitalesmx.online/fixi4/readyz` respondió HTTP 200 durante la verificación. Esto confirma disponibilidad del endpoint, pero no identifica por sí solo el digest activo del contenedor.
+- El proyecto Vercel `fixi-monolith-web` quedó conectado a `serviciosdigitalesmx/fixi-repairshop-v4`; la rama de producción configurada es `main`, con root `frontend`, Vite, `npm run build` y salida `dist`.
+- El último deployment de producción observado antes del cambio de conexión usaba el commit `13621171` de `codex/fixi-repairshop` en el repositorio de origen. Aún falta comprobar el nuevo preview y el siguiente deployment de `main`.
+- La composición VPS `deploy/compose.vps.yml` define un stack `fixi4` con PostgreSQL y almacenamiento propios. La API arranca migraciones EF Core en esa base. No se debe apuntar a la base del producto anterior.
+- El workflow actual valida y publica imágenes; no contiene un paso automático de SSH al VPS. El procedimiento documentado para el VPS actualiza el stack con Docker Compose y un digest de imagen.
 
-## Incorporado
+## Datos y compatibilidad
 
-Backend completo, migraciones EF Core, frontend completo, órdenes/diagnóstico/presupuestos/QA/garantías, clientes/equipos, inventario/compras/proveedores/transferencias, POS/caja, reportes, portal, mensajes/outbox, usuarios/sucursales, suscripciones, pruebas y CI upstream. Marca visible Fixi en la UI, PWA, invitaciones y descripciones de suscripción. Los identificadores técnicos `RepairShop.*`, issuer JWT y propósitos criptográficos se conservan deliberadamente.
-
-## Diferencias que impiden un corte ciego de producción
-
-1. No existe migración de datos desde Spring/Flyway a EF Core. No apuntar esta aplicación a la base anterior ni copiar hashes/grants automáticamente.
-2. El modelo upstream tiene Admin/Tech/Reception/Cashier. No hereda el SUPER_ADMIN tenantless ni `platform_admin_grant` anterior; se requiere decidir/validar la administración global antes del corte.
-3. La fiscalidad ARCA/AFIP, CUIT, textos legales, valores regionales y cobros argentinos son funcionalidad upstream; no equivalen a CFDI ni a condiciones legales/comerciales de México. No se reemplazan con una implementación ficticia.
-4. Signup admite México; verificar moneda operativa, zona horaria, precios y canales reales antes de habilitar altas comerciales. No se cambiaron importes ni conversiones masivamente.
-5. Los proveedores simulados son exclusivos de CI/demo. Ninguna prueba demo acredita entrega real de email/WhatsApp ni pagos.
-6. Configurar explícitamente integraciones, frontend/backend del nuevo target, almacenamiento, backups y rollback antes de un despliegue autorizado. No reutilizar el proxy Vercel del backend Spring.
+1. No existe migración de datos desde la aplicación Spring/Flyway anterior a EF Core. Esta extracción no copia clientes, órdenes, usuarios, contraseñas ni grants.
+2. La autorización del backend .NET conserva aislamiento por organización y sucursal; no hereda automáticamente los grants globales del producto anterior.
+3. Hay diferencias regionales pendientes de revisión: fiscalidad ARCA/AFIP, textos legales y cobros de Argentina no equivalen a CFDI ni a condiciones comerciales de México.
+4. Los valores de precios, integraciones de pagos, correo, WhatsApp y administración global deben comprobarse con cuentas reales antes de habilitar altas o cobros.
+5. No ejecutar migraciones contra la base del producto anterior ni cambiar dominios de producción si eso pudiera presentar una base vacía como si fueran datos perdidos.
 
 ## Validación
 
-La fuente de verdad es el workflow `Fixi RepairShop CI`: backend completo con PostgreSQL efímero, frontend lint/types/unit/build, imágenes/Compose y browser E2E contra .NET real. Consultar el resultado terminal para el SHA correspondiente; la presencia de pruebas no demuestra que pasaron.
+GitHub Actions es la fuente autoritativa para backend, frontend, Docker, Compose y Playwright. Un HTTP 200 de salud confirma disponibilidad, no valida por sí solo versión, integraciones de pagos, correo, backups ni restauración.
