@@ -1,0 +1,57 @@
+# Environment
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+
+# Logs
+*.log
+logs/
+
+# Local app settings
+appsettings.Local.json
+appsettings.*.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives / backups
+*.zip
+*.rar
+*.7z
+*.bak
+*copy*
+*final*
+*fixed*
+
+# Uploaded files (local storage)
+**/data/uploads/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
+# Preserve local agent material; never publish it.
+.codex-attachments/
+.codex-remote-attachments/
+.push-temp/
+.nuget-demo/
+Dockerfile.local-demo
+compose.local.yml
+*.dump
+*.sql.gz
+*.zip

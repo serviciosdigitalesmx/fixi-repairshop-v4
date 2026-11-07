@@ -1,0 +1,53 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import type { AxiosError } from 'axios'
+import App from './App'
+import { SessionProvider } from './auth/session'
+import './styles.css'
+
+try {
+  const savedTheme = localStorage.getItem('fixi-theme')
+  const initialTheme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  document.documentElement.dataset.theme = initialTheme
+} catch {
+  document.documentElement.dataset.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 15_000,
+      refetchOnWindowFocus: true,
+      // Don't retry what will fail again (validation, permissions, not found).
+      retry: (count, error) => {
+        const status = (error as AxiosError)?.response?.status
+        if (status && status >= 400 && status < 500 && status !== 408 && status !== 429) return false
+        return count < 2
+      },
+    },
+    mutations: { retry: false },
+  },
+})
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <SessionProvider>
+          <App />
+        </SessionProvider>
+      </BrowserRouter>
+      <Toaster richColors position="top-right" closeButton />
+    </QueryClientProvider>
+  </StrictMode>
+)
+
+// Offline shell + install prompt (production only, so dev hot reload is never cached).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/sw.js').catch(() => undefined)
+  })
+}
