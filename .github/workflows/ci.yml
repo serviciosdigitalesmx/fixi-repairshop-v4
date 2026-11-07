@@ -1,14 +1,14 @@
-name: Fixi RepairShop CI
+name: Fixi 4V CI
 
 on:
   push:
-    branches: [codex/fixi-repairshop]
+    branches: [main]
   pull_request:
-    branches: [codex/fixi-repairshop]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: fixi-repairshop-ci-${{ github.ref }}
+  group: fixi4-ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
