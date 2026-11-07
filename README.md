@@ -9,7 +9,7 @@ Proyecto independiente de Fixi 4V, extraído del monorepo `serviciosdigitalesmx/
 - Qué se conserva del Fixi anterior y qué falta para cortar producción: [estado de adopción](docs/ADOPTION_STATUS.md).
 - Referencia upstream sin editar: [README original](docs/UPSTREAM_README.md).
 
-**No conectar a PostgreSQL del producto anterior.** El backend `/fixi4/readyz` respondió HTTP 200 en la verificación del 7 de noviembre de 2026. El proyecto Vercel todavía apunta al repositorio de origen; consulta el [estado de independencia y producción](docs/ADOPTION_STATUS.md) antes de cambiar la conexión o dominios.
+**No conectar a PostgreSQL del producto anterior.** El backend `/fixi4/readyz` respondió HTTP 200 en la verificación del 7 de noviembre de 2026. El proyecto Vercel `fixi-monolith-web` ya apunta a este repositorio y tiene `main` como rama de producción; consulta el [estado de independencia y producción](docs/ADOPTION_STATUS.md) para el último deployment comprobado.
 
 ## Funcionalidad heredada de RepairShop
 

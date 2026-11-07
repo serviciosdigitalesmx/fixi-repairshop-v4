@@ -11,8 +11,8 @@
 ## Estado observado de producción al 7 de noviembre de 2026
 
 - La API `https://api-fixi.serviciosdigitalesmx.online/fixi4/readyz` respondió HTTP 200 durante la verificación. Esto confirma disponibilidad del endpoint, pero no identifica por sí solo el digest activo del contenedor.
-- El proyecto Vercel `fixi-monolith-web` todavía estaba conectado a `serviciosdigitalesmx/hotel-pms-mexico`; su último deployment de producción observado usaba el commit `13621171` de `codex/fixi-repairshop`.
-- La conexión Vercel a este repositorio nuevo y una publicación desde su rama `main` siguen siendo pasos de migración; no deben confundirse con el preview de un PR.
+- El proyecto Vercel `fixi-monolith-web` quedó conectado a `serviciosdigitalesmx/fixi-repairshop-v4`; la rama de producción configurada es `main`, con root `frontend`, Vite, `npm run build` y salida `dist`.
+- El último deployment de producción observado antes del cambio de conexión usaba el commit `13621171` de `codex/fixi-repairshop` en el repositorio de origen. Aún falta comprobar el nuevo preview y el siguiente deployment de `main`.
 - La composición VPS `deploy/compose.vps.yml` define un stack `fixi4` con PostgreSQL y almacenamiento propios. La API arranca migraciones EF Core en esa base. No se debe apuntar a la base del producto anterior.
 - El workflow actual valida y publica imágenes; no contiene un paso automático de SSH al VPS. El procedimiento documentado para el VPS actualiza el stack con Docker Compose y un digest de imagen.
 

@@ -28,9 +28,9 @@ No se agregaron endpoints, campos de negocio, permisos, transiciones ni datos fi
 
 - GitHub Actions del `main` extraído, commit `0ae523b5`: backend build/unit/integration, frontend lint/types/unit/build, Docker/Compose y Playwright pasaron.
 - No se ejecutaron builds ni pruebas locales, de acuerdo con `AGENTS.md`.
-- PR de migración UX en el repositorio nuevo: pendiente de crear y validar en GitHub Actions.
+- PR de migración UX: [#1](https://github.com/serviciosdigitalesmx/fixi-repairshop-v4/pull/1), abierto contra `main`. En el primer run del PR, lint, pruebas unitarias y build frontend pasaron; backend, Docker/Compose y Playwright siguen en curso.
 - La API productiva `/fixi4/readyz` respondió HTTP 200. El árbol `backend/` del origen actual coincide con el código desplegado en producción; no se requirió reiniciar el servicio ni migrar la base.
-- La conexión Vercel al repositorio independiente y el preview asociado a este PR quedan pendientes de completar y verificar.
+- El proyecto Vercel `fixi-monolith-web` ya está conectado al repositorio independiente, con `main` y root `frontend`; falta que Vercel produzca el preview de este PR y verificarlo.
 - No se ejecutaron cobros, cierres de caja, operaciones con datos productivos ni cambios de DNS.
 
 ## Rama y entrega
@@ -38,7 +38,7 @@ No se agregaron endpoints, campos de negocio, permisos, transiciones ni datos fi
 - Base: `main` de `serviciosdigitalesmx/fixi-repairshop-v4`.
 - Fuente de código: snapshot de `codex/fixi-repairshop` en `serviciosdigitalesmx/hotel-pms-mexico`.
 - Se abrió el nuevo repositorio como privado y sin arrastrar el historial completo del PMS.
-- PR de este repositorio, resultado final de Actions, deployment Vercel, SHA final y estado de producción: actualizar después de completar la validación.
+- PR #1 está abierto; resultado final de Actions, deployment Vercel, SHA final y estado del deployment de producción se actualizarán tras completar la validación.
 
 ## Riesgos residuales
 
