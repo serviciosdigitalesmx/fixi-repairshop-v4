@@ -212,9 +212,8 @@ jobs:
         run: |
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           IMAGE="ghcr.io/serviciosdigitalesmx/fixi-repairshop-v4:4v-$GITHUB_SHA"
-          PUSH_RESULT="$(docker push "$IMAGE" 2>&1)"
-          printf '%s\n' "$PUSH_RESULT"
-          DIGEST="$(printf '%s\n' "$PUSH_RESULT" | awk '{for (i=1; i<=NF; i++) if ($i == "digest:") print $(i+1)}' | tail -n 1)"
-          test -n "$DIGEST"
+          docker push "$IMAGE"
+          DIGEST="$(docker buildx imagetools inspect "$IMAGE" --format '{{json .Manifest}}' | jq -r '.digest')"
+          test -n "$DIGEST" && test "$DIGEST" != "null"
           printf 'VPS image: `ghcr.io/serviciosdigitalesmx/fixi-repairshop-v4@%s`\n' "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
           docker logout ghcr.io
