@@ -1,6 +1,6 @@
-# Fixi 4V · 1.0 — nueva base RepairShop
+# Fixi 4V RepairShop
 
-Este es el **nuevo Fixi**, adoptado por decisión del propietario a partir de RepairShop. Backend ASP.NET Core 8, frontend React/TypeScript/Vite y PostgreSQL independiente. La marca visible es Fixi; los nombres técnicos internos se conservan para reducir riesgo.
+Proyecto independiente de Fixi 4V, extraído del monorepo `serviciosdigitalesmx/hotel-pms-mexico`. Backend ASP.NET Core 8, frontend React/TypeScript/Vite y PostgreSQL. La marca visible es Fixi; los nombres técnicos internos se conservan para reducir riesgo.
 
 - Código frontend: `frontend/`.
 - Código backend y migraciones: `backend/`.
@@ -9,7 +9,7 @@ Este es el **nuevo Fixi**, adoptado por decisión del propietario a partir de Re
 - Qué se conserva del Fixi anterior y qué falta para cortar producción: [estado de adopción](docs/ADOPTION_STATUS.md).
 - Referencia upstream sin editar: [README original](docs/UPSTREAM_README.md).
 
-**No conectar a PostgreSQL de Fixi anterior. No desplegado aún.** El checkout anterior, su rama e historial permanecen conservados. Las instrucciones de despliegue y los textos legales heredados necesitan adaptación explícita antes de usarse en producción.
+**No conectar a PostgreSQL del producto anterior.** El backend `/fixi4/readyz` respondió HTTP 200 en la verificación del 7 de noviembre de 2026. El proyecto Vercel todavía apunta al repositorio de origen; consulta el [estado de independencia y producción](docs/ADOPTION_STATUS.md) antes de cambiar la conexión o dominios.
 
 ## Funcionalidad heredada de RepairShop
 
@@ -117,7 +117,7 @@ Open http://localhost:5173 and sign in with a demo user:
 
 API: http://localhost:8080 · Swagger: http://localhost:8080/swagger · Health: `/healthz`, `/readyz`.
 
-Production deployment on a server with its own reverse proxy (web app, API, database and daily backups): [`deploy/README.md`](deploy/README.md). Configuration and integrations are documented in the [backend README](backend/README.md) and the [frontend README](frontend/README.md). Example configuration files: `backend/.env.example`, `backend/src/RepairShop.Api/appsettings.Example.json`, `frontend/.env.example`. Never commit real secrets.
+Production deployment on a server with its own reverse proxy (web app, API, database and daily backups): [`deploy/README.md`](deploy/README.md). The immutable-image procedure for the existing Hostinger stack is in [`deploy/HOSTINGER_RELEASE.md`](deploy/HOSTINGER_RELEASE.md). Configuration and integrations are documented in the [backend README](backend/README.md) and the [frontend README](frontend/README.md). Example configuration files: `backend/.env.example`, `backend/src/RepairShop.Api/appsettings.Example.json`, `frontend/.env.example`. Never commit real secrets.
 
 ## Tests and CI
 
