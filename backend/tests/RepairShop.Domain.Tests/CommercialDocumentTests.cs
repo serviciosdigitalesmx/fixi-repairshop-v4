@@ -87,6 +87,12 @@ public sealed class CommercialDocumentTests
     public void Commercial_document_computes_paid_and_balance_from_payment_refund_and_change_snapshots()
     {
         var document = Create(
+            lines: new[]
+            {
+                new CommercialDocumentLineInput("Pantalla", 2, 100, DiscountAmount: 10),
+                new CommercialDocumentLineInput("Mano de obra", 1, 60)
+            },
+            discountAmount: 20,
             operationTotal: 230,
             payments: new[]
             {
@@ -147,6 +153,7 @@ public sealed class CommercialDocumentTests
             payments: new[]
             {
                 new CommercialDocumentPaymentInput(CommercialPaymentMovementType.Payment, PaymentMethod.Transfer, 40, IsDeposit: true),
+                new CommercialDocumentPaymentInput(CommercialPaymentMovementType.Payment, PaymentMethod.Card, 20),
                 new CommercialDocumentPaymentInput(CommercialPaymentMovementType.Refund, PaymentMethod.Transfer, 41, IsDeposit: true)
             });
 
