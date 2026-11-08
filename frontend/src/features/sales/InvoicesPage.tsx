@@ -1,3 +1,4 @@
+import { CommercialInvoices } from './CommercialInvoices'
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -19,7 +20,7 @@ export function InvoicesPage() {
   const tab = params.get('tab') === 'rates' ? 'rates' : 'invoices'
   return (
     <div>
-      <PageHeader title="Facturas" subtitle="Comprobantes electrónicos emitidos con ARCA y cotizaciones usadas en reportes." />
+      <PageHeader title="Facturas" subtitle="Documento comercial sin validez fiscal. No constituye un CFDI." />
       <Tabs
         className="mb-4"
         value={tab}
@@ -29,12 +30,12 @@ export function InvoicesPage() {
           { value: 'rates', label: 'Cotizaciones' },
         ]}
       />
-      {tab === 'invoices' ? <InvoicesTab /> : <RatesTab />}
+      {tab === 'invoices' ? <CommercialInvoices /> : <RatesTab />}
     </div>
   )
 }
 
-function InvoicesTab() {
+export function LegacyInvoicesTab() {
   const { role } = useSession()
   const queryClient = useQueryClient()
   const [from, setFrom] = useState('')

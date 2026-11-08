@@ -15,7 +15,7 @@ export function IntegrationsTab() {
   return (
     <div className="space-y-4">
       <MercadoPagoCard status={s} />
-      <FiscalCard status={s} />
+      <Card title="Facturación comercial mexicana"><p>Documentos administrativos en MXN sin validez fiscal. Emite desde ventas u órdenes.</p></Card>
       <Card title="Servicios del servidor">
         <p className="mb-3 text-sm text-slate-600">Se configuran en el servidor (variables de entorno). Aquí ves si están activos.</p>
         <ul className="grid gap-2 text-sm sm:grid-cols-2">
@@ -96,7 +96,7 @@ function MercadoPagoCard({ status }: { status: IntegrationsStatus }) {
   )
 }
 
-function FiscalCard({ status }: { status: IntegrationsStatus }) {
+export function FiscalCard({ status }: { status: IntegrationsStatus }) {
   const queryClient = useQueryClient()
   const [enabled, setEnabled] = useState(status.fiscalEnabled)
   const [environment, setEnvironment] = useState<FiscalEnvironment>(status.fiscalEnvironment)

@@ -4,9 +4,9 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { settingsApi } from '../../api/endpoints'
 import { errorMessage, fieldErrors } from '../../api/http'
-import type { NotificationChannel, ShopSettings, TaxCondition, UpdateShopSettings } from '../../api/types'
+import type { NotificationChannel, ShopSettings, UpdateShopSettings } from '../../api/types'
 import { Button, Card, Checkbox, ErrorState, Field, Input, Loading, PageHeader, Select, Tabs, Textarea } from '../../components/ui'
-import { CHANNEL, TAX_CONDITION } from '../../lib/labels'
+import { CHANNEL } from '../../lib/labels'
 import { CURRENCIES } from '../../lib/shop'
 import { AuditTab } from './AuditTab'
 import { IntegrationsTab } from './IntegrationsTab'
@@ -119,18 +119,7 @@ function SettingsEditor({ settings, section }: { settings: ShopSettings; section
               <Field label="Razón social" error={errors.legalName}>
                 <Input value={text('legalName')} onChange={(e) => set('legalName', e.target.value)} />
               </Field>
-              <Field label="CUIT" error={errors.taxId}>
-                <Input value={text('taxId')} onChange={(e) => set('taxId', e.target.value)} placeholder="20-12345678-9" />
-              </Field>
-              <Field label="Condición frente al IVA">
-                <Select value={v.taxCondition} onChange={(e) => set('taxCondition', e.target.value as TaxCondition)}>
-                  {(Object.keys(TAX_CONDITION) as TaxCondition[]).map((t) => (
-                    <option key={t} value={t}>
-                      {TAX_CONDITION[t]}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+
               <Field label="Teléfono / WhatsApp" error={errors.phone}>
                 <Input value={text('phone')} onChange={(e) => set('phone', e.target.value)} />
               </Field>

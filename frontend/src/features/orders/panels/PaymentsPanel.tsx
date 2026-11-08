@@ -1,3 +1,4 @@
+import { CommercialInvoices } from '../../sales/CommercialInvoices'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -19,10 +20,8 @@ export function PaymentsPanel({ order }: { order: RepairOrder }) {
   const financials = useQuery({ queryKey: ['order', order.id, 'financials'], queryFn: () => ordersApi.financials(order.id) })
   const payments = useQuery({ queryKey: ['order', order.id, 'payments'], queryFn: () => ordersApi.payments(order.id) })
   const links = useQuery({ queryKey: ['order', order.id, 'links'], queryFn: () => ordersApi.paymentLinks(order.id), enabled: can('sales') })
-  const invoices = useQuery({ queryKey: ['order', order.id, 'invoices'], queryFn: () => ordersApi.invoices(order.id), enabled: can('sales') })
   const [paying, setPaying] = useState(false)
   const [refunding, setRefunding] = useState<OrderPayment | null>(null)
-  const [invoicing, setInvoicing] = useState(false)
   const [agreed, setAgreed] = useState(false)
 
   const refresh = () => {
@@ -83,9 +82,7 @@ export function PaymentsPanel({ order }: { order: RepairOrder }) {
                     Enlace de pago Mercado Pago
                   </Button>
                 ) : null}
-                <Button onClick={() => setInvoicing(true)} disabled={f.paid <= 0}>
-                  Facturar
-                </Button>
+
               </div>
             ) : null}
           </div>
@@ -164,29 +161,10 @@ export function PaymentsPanel({ order }: { order: RepairOrder }) {
         </Card>
       ) : null}
 
-      {(invoices.data ?? []).length > 0 ? (
-        <Card title="Comprobantes electrónicos">
-          <ul className="space-y-2 text-sm">
-            {invoices.data!.map((i) => (
-              <li key={i.id} className="flex flex-wrap items-center justify-between gap-2">
-                <span>
-                  {i.voucherType} {i.code} · {money(i.total)} · <Badge tone={i.status === 'Authorized' ? 'green' : 'rose'}>{i.status === 'Authorized' ? `CAE ${i.cae}` : i.status}</Badge>
-                  {i.resultMessage && i.status !== 'Authorized' ? <span className="block text-xs text-rose-700">{i.resultMessage}</span> : null}
-                </span>
-                {i.status === 'Authorized' ? (
-                  <Button size="sm" variant="ghost" onClick={() => void openPdf(`/invoices/${i.id}/pdf`)}>
-                    PDF
-                  </Button>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
+      <CommercialInvoices sourceType="RepairOrder" sourceId={order.id} />
 
       {paying && f ? <PaymentDialog order={order} balance={f.balanceDue} currency={f.currency} onClose={() => setPaying(false)} onDone={() => { setPaying(false); refresh() }} /> : null}
       {refunding ? <RefundDialog order={order} payment={refunding} onClose={() => setRefunding(null)} onDone={() => { setRefunding(null); refresh() }} /> : null}
-      {invoicing ? <InvoiceDialog orderId={order.id} onClose={() => setInvoicing(false)} onDone={() => { setInvoicing(false); refresh() }} /> : null}
       {agreed && f ? <AgreedPriceDialog order={order} current={f.hasAgreedPrice ? f.agreedPrice : null} currency={f.currency} onClose={() => setAgreed(false)} onDone={() => { setAgreed(false); refresh() }} /> : null}
     </div>
   )
@@ -303,6 +281,12 @@ function RefundDialog({ order, payment, onClose, onDone }: { order: RepairOrder;
 }
 
 export function InvoiceDialog({ orderId, saleId, onClose, onDone }: { orderId?: string; saleId?: string; onClose: () => void; onDone: () => void }) {
+  return <Modal open title="Factura comercial mexicana" onClose={onClose} footer={<Button onClick={onDone}>Listo</Button>}>
+    <CommercialInvoices sourceType={orderId ? 'RepairOrder' : 'Sale'} sourceId={orderId ?? saleId} />
+  </Modal>
+}
+
+export function LegacyFiscalInvoiceDialog({ orderId, saleId, onClose, onDone }: { orderId?: string; saleId?: string; onClose: () => void; onDone: () => void }) {
   const [docType, setDocType] = useState<DocumentType>('None')
   const [docNumber, setDocNumber] = useState('')
   const [name, setName] = useState('')

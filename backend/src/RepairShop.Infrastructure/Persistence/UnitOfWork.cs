@@ -36,9 +36,16 @@ public sealed class UnitOfWork : IUnitOfWork
         if (_db.Database.CurrentTransaction is not null) return await work(ct);
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        var result = await work(ct);
-        await tx.CommitAsync(ct);
-        return result;
+        try
+        {
+            var result = await work(ct);
+            await tx.CommitAsync(ct);
+            return result;
+        }
+        catch (Exception ex) when (IsSerializationFailure(ex))
+        {
+            throw new ConcurrencyConflictException(ex);
+        }
     }
 
     public async Task<T> RetryOnConflictAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct, int maxAttempts = 3)
@@ -55,6 +62,13 @@ public sealed class UnitOfWork : IUnitOfWork
                 await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), ct);
             }
         }
+    }
+
+    private static bool IsSerializationFailure(Exception ex)
+    {
+        for (Exception? current = ex; current is not null; current = current.InnerException)
+            if (current is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure }) return true;
+        return false;
     }
 
     public void Detach(object entity) => _db.Entry(entity).State = EntityState.Detached;

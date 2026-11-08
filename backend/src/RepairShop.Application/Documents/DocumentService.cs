@@ -20,6 +20,7 @@ public sealed record GeneratedDocument(byte[] Content, string FileName, string C
 public sealed class DocumentService
 {
     private readonly IPdfRenderer _pdf;
+    private readonly ICommercialDocumentRepository _commercialDocuments;
     private readonly IShopRepository _shops;
     private readonly IRepairOrderRepository _orders;
     private readonly ICustomerRepository _customers;
@@ -38,6 +39,7 @@ public sealed class DocumentService
 
     public DocumentService(
         IPdfRenderer pdf,
+        ICommercialDocumentRepository commercialDocuments,
         IShopRepository shops,
         IRepairOrderRepository orders,
         ICustomerRepository customers,
@@ -55,6 +57,7 @@ public sealed class DocumentService
         IAppLinks links)
     {
         _pdf = pdf;
+        _commercialDocuments = commercialDocuments;
         _shops = shops;
         _orders = orders;
         _customers = customers;
@@ -194,6 +197,12 @@ public sealed class DocumentService
             order.WarrantyExpiresAtUtc is null ? null : Local(order.WarrantyExpiresAtUtc.Value, tz), shop.WarrantyTerms ?? DefaultWarrantyTerms,
             await _files.ReadBytesAsync(shopId, order.DeliverySignatureFileId, ct), order.DeliverySignedByName, _links.Tracking(order.PublicToken));
         return new GeneratedDocument(_pdf.WarrantyCertificate(model), $"garantia-{order.OrderNumber:D6}.pdf");
+    }
+
+    public async Task<GeneratedDocument> CommercialInvoiceAsync(Guid shopId, Guid id, CancellationToken ct)
+    {
+        var document = await _commercialDocuments.GetAsync(shopId, id, ct) ?? throw new NotFoundException("Documento comercial no encontrado.");
+        return new GeneratedDocument(_pdf.CommercialInvoice(document), $"factura-comercial-{document.Number:D6}.pdf");
     }
 
     public async Task<GeneratedDocument> InvoiceAsync(Guid shopId, Guid invoiceId, CancellationToken ct)

@@ -55,10 +55,9 @@ export function TermsPage() {
         Los datos que registras (clientes, equipos, órdenes, comprobantes) son de tu taller. Los tratamos según la Política de privacidad y puedes pedir una copia o
         su eliminación en cualquier momento.
       </p>
-      <h2>5. Facturación electrónica</h2>
+      <h2>5. Facturación comercial</h2>
       <p>
-        La emisión de comprobantes ante ARCA (Argentina) se realiza con el certificado y el punto de venta de cada taller. Cada taller es responsable de sus
-        obligaciones fiscales y de revisar los comprobantes que emite.
+        Los documentos comerciales mexicanos son administrativos. Documento comercial sin validez fiscal. No constituye un CFDI. Cada taller es responsable de sus obligaciones fiscales.
       </p>
       <h2>6. Disponibilidad y responsabilidad</h2>
       <p>
@@ -99,7 +98,7 @@ export function PrivacyPage() {
       <h2>4. Con quién los compartimos</h2>
       <p>
         Con proveedores necesarios para operar: alojamiento, envío de correos electrónicos, SMS y WhatsApp, cobro de la suscripción (Mercado Pago en Argentina y Paddle en el
-        resto de los países) y ARCA para la facturación electrónica. Cada uno recibe solo lo necesario para su función. Algunos de ellos procesan datos fuera de
+        resto de los países). La emisión comercial mexicana no utiliza proveedores fiscales externos. Cada uno recibe solo lo necesario para su función. Algunos de ellos procesan datos fuera de
         tu país, con las garantías que exige la normativa aplicable.
       </p>
       <h2>5. Seguridad y conservación</h2>

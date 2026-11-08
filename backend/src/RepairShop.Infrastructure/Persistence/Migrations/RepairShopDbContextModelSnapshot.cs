@@ -294,6 +294,171 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                     b.ToTable("cash_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("RepairShop.Domain.CommercialDocuments.CommercialDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("BalanceAtIssue")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("CancellationReason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CancelledByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ChangeAmount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<decimal>("DepositAmountAtIssue")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("IssuedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LogoBase64")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PaidAtIssue")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("PaymentsAtIssue")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("ShopId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceReference")
+                        .HasColumnType("text");
+
+                    b.Property<int>("SourceType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShopId");
+
+                    b.HasIndex("ShopId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex("ShopId", "SourceType", "SourceId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 1");
+
+                    b.ToTable("commercial_documents", (string)null);
+                });
+
+            modelBuilder.Entity("RepairShop.Domain.CommercialDocuments.CommercialDocumentLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommercialDocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommercialDocumentId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("commercial_document_lines", (string)null);
+                });
+
+            modelBuilder.Entity("RepairShop.Domain.CommercialDocuments.CommercialDocumentPayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("CommercialDocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeposit")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reference")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommercialDocumentId");
+
+                    b.ToTable("commercial_document_payments", (string)null);
+                });
+
             modelBuilder.Entity("RepairShop.Domain.Currency.ExchangeRate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1928,6 +2093,9 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                     b.Property<bool?>("CamerasOk")
                         .HasColumnType("boolean");
 
+                    b.Property<bool?>("ChargingOk")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("CloudLock")
                         .HasColumnType("integer");
 
@@ -1944,6 +2112,9 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                     b.Property<bool?>("MicrophoneOk")
                         .HasColumnType("boolean");
 
+                    b.Property<bool?>("PowersOn")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("RepairOrderId")
                         .HasColumnType("uuid");
 
@@ -1954,12 +2125,6 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<bool?>("SpeakersOk")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool?>("PowersOn")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool?>("ChargingOk")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -2672,6 +2837,108 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("RepairShop.Domain.CommercialDocuments.CommercialDocument", b =>
+                {
+                    b.HasOne("RepairShop.Domain.Shops.Shop", null)
+                        .WithMany()
+                        .HasForeignKey("ShopId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("RepairShop.Domain.CommercialDocuments.CommercialPartySnapshot", "Issuer", b1 =>
+                        {
+                            b1.Property<Guid>("CommercialDocumentId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Address")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("City")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Country")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Email")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("LegalName")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Phone")
+                                .HasColumnType("text");
+
+                            b1.HasKey("CommercialDocumentId");
+
+                            b1.ToTable("commercial_documents");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommercialDocumentId");
+                        });
+
+                    b.OwnsOne("RepairShop.Domain.CommercialDocuments.CommercialPartySnapshot", "Recipient", b1 =>
+                        {
+                            b1.Property<Guid>("CommercialDocumentId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Address")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("City")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Country")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Email")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("LegalName")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Phone")
+                                .HasColumnType("text");
+
+                            b1.HasKey("CommercialDocumentId");
+
+                            b1.ToTable("commercial_documents");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommercialDocumentId");
+                        });
+
+                    b.Navigation("Issuer")
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+                });
+
+            modelBuilder.Entity("RepairShop.Domain.CommercialDocuments.CommercialDocumentLine", b =>
+                {
+                    b.HasOne("RepairShop.Domain.CommercialDocuments.CommercialDocument", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("CommercialDocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RepairShop.Domain.CommercialDocuments.CommercialDocumentPayment", b =>
+                {
+                    b.HasOne("RepairShop.Domain.CommercialDocuments.CommercialDocument", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("CommercialDocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("RepairShop.Domain.Customers.Customer", b =>
                 {
                     b.HasOne("RepairShop.Domain.Shops.Shop", null)
@@ -3182,6 +3449,13 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("RepairShop.Domain.CommercialDocuments.CommercialDocument", b =>
+                {
+                    b.Navigation("Lines");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("RepairShop.Domain.Inventory.PurchaseOrder", b =>

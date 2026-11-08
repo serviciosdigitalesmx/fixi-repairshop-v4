@@ -264,6 +264,49 @@ public sealed class QuestPdfRenderer : IPdfRenderer
         page.Footer().Element(Footer);
     })).GeneratePdf();
 
+    public byte[] CommercialInvoice(RepairShop.Domain.CommercialDocuments.CommercialDocument m) => Document.Create(doc => doc.Page(page =>
+    {
+        A4(page);
+        static string Amount(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture) + " MXN";
+        page.Header().Column(h =>
+        {
+            if (m.LogoBase64 is not null) h.Item().Height(45).Image(Convert.FromBase64String(m.LogoBase64)).FitHeight();
+            h.Item().Text(m.Issuer.LegalName ?? m.Issuer.Name).Bold().FontSize(17);
+            h.Item().Text($"{m.Issuer.Address} {m.Issuer.City} {m.Issuer.Country}");
+            h.Item().Text($"{m.Issuer.Phone} {m.Issuer.Email}");
+            h.Item().PaddingTop(8).Text($"FACTURA COMERCIAL · FC-{m.Number:D6}").Bold();
+            h.Item().Text($"Emisión (UTC): {m.IssuedAtUtc:dd/MM/yyyy HH:mm} · {m.SourceType}: {m.SourceReference ?? m.SourceId.ToString()}");
+        });
+        page.Content().PaddingVertical(12).Column(col =>
+        {
+            col.Spacing(10);
+            col.Item().Text(m.Status == RepairShop.Domain.CommercialDocuments.CommercialDocumentStatus.Cancelled ? "CANCELADA ADMINISTRATIVAMENTE" : "VIGENTE").Bold();
+            if (m.CancellationReason is not null) col.Item().Text($"Motivo: {m.CancellationReason}");
+            if (m.Recipient is not null) col.Item().Element(c => Box(c, "Cliente", x =>
+            {
+                x.Item().Text(m.Recipient.Name);
+                x.Item().Text($"{m.Recipient.Phone} {m.Recipient.Email}");
+                x.Item().Text(m.Recipient.Address ?? "");
+            }));
+            col.Item().Element(c => Lines(c, m.Lines.Select(l => new DocLine(l.Description, l.Quantity, l.UnitPrice, l.DiscountAmount, l.Total)).ToList(), "MXN", true));
+            col.Item().AlignRight().Width(280).Column(x =>
+            {
+                Pair(x, "Subtotal", Amount(m.Subtotal));
+                Pair(x, "Descuento global", Amount(m.DiscountAmount));
+                Pair(x, "Total de la operación", Amount(m.Total), true);
+                Pair(x, "Anticipos netos al emitir", Amount(m.DepositAmountAtIssue));
+                Pair(x, "Otros pagos netos al emitir", Amount(m.PaymentsAtIssue));
+                Pair(x, "Cambio entregado", Amount(m.ChangeAmount));
+                Pair(x, m.BalanceAtIssue < 0 ? "Saldo a favor al emitir" : "Saldo pendiente al emitir", Amount(Math.Abs(m.BalanceAtIssue)), true);
+            });
+            foreach (var p in m.Payments)
+                col.Item().Text($"{(p.Type == RepairShop.Domain.CommercialDocuments.CommercialPaymentMovementType.Refund ? "Devolución" : "Pago")} {(p.IsDeposit ? "de anticipo" : "")} · {p.Method} · {Amount(p.Amount)} · {p.Reference}").FontSize(9);
+            col.Item().PaddingTop(8).Text("Documento comercial sin validez fiscal. No constituye un CFDI").Bold();
+            col.Item().Text("Los importes y movimientos corresponden al momento de emisión.").FontSize(8);
+        });
+        page.Footer().Element(Footer);
+    })).GeneratePdf();
+
     // ===== Electronic invoice (A4) =====
 
     public byte[] Invoice(InvoiceDocumentModel m) => Document.Create(doc => doc.Page(page =>
@@ -444,10 +487,10 @@ public sealed class QuestPdfRenderer : IPdfRenderer
             foreach (var l in lines)
             {
                 t.Cell().Element(BodyCell).Text(l.Description);
-                t.Cell().Element(BodyCell).AlignRight().Text(l.Quantity.ToString("0.##", CultureInfo.InvariantCulture));
-                t.Cell().Element(BodyCell).AlignRight().Text(Money(l.UnitPrice));
-                if (showDiscount) t.Cell().Element(BodyCell).AlignRight().Text(l.Discount == 0 ? "—" : Money(l.Discount));
-                t.Cell().Element(BodyCell).AlignRight().Text(Money(l.Total));
+                t.Cell().Element(BodyCell).AlignRight().Text(l.Quantity.ToString(currency == "MXN" ? "0.###" : "0.##", CultureInfo.InvariantCulture));
+                t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.UnitPrice.ToString("N2", CultureInfo.InvariantCulture) : Money(l.UnitPrice)));
+                if (showDiscount) t.Cell().Element(BodyCell).AlignRight().Text(l.Discount == 0 ? "—" : (currency == "MXN" ? l.Discount.ToString("N2", CultureInfo.InvariantCulture) : Money(l.Discount)));
+                t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.Total.ToString("N2", CultureInfo.InvariantCulture) : Money(l.Total)));
             }
         });
 

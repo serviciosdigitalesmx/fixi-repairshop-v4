@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<QuoteService>();
         services.AddScoped<SuggestionService>();
         services.AddScoped<DocumentService>();
+        services.AddScoped<RepairShop.Application.CommercialDocuments.CommercialDocumentService>();
         services.AddScoped<FileService>();
 
         services.AddScoped<CashRegisterService>();
