@@ -38,6 +38,8 @@ public sealed class CommercialDocumentTests(ApiFactory factory)
         var again = await (await api.Post("/commercial-documents", body)).DataAsync();
         again.GetProperty("number").GetInt32().Should().Be(2, "failed and duplicate emissions roll back their folio");
         (await (await api.Get($"/commercial-documents/{doc.Str("id")}")).DataAsync()).Str("status").Should().Be("Cancelled");
+        var cashier = await ApiClient.LoginAsync(factory, "caja@local", "Caja123456");
+        (await cashier.Post($"/commercial-documents/{doc.Str("id")}/cancel", new { reason = "Intento sin permisos" })).StatusCode.Should().Be(HttpStatusCode.Forbidden);
         var tech = await ApiClient.LoginAsync(factory, "tech@local", "Tech123456");
         (await tech.Get("/commercial-documents")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
         (await tech.Post("/commercial-documents", body)).StatusCode.Should().Be(HttpStatusCode.Forbidden);

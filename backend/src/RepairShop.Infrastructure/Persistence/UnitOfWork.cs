@@ -42,7 +42,7 @@ public sealed class UnitOfWork : IUnitOfWork
             await tx.CommitAsync(ct);
             return result;
         }
-        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.SerializationFailure)
+        catch (Exception ex) when (IsSerializationFailure(ex))
         {
             throw new ConcurrencyConflictException(ex);
         }
@@ -62,6 +62,13 @@ public sealed class UnitOfWork : IUnitOfWork
                 await Task.Delay(TimeSpan.FromMilliseconds(25 * attempt), ct);
             }
         }
+    }
+
+    private static bool IsSerializationFailure(Exception ex)
+    {
+        for (Exception? current = ex; current is not null; current = current.InnerException)
+            if (current is PostgresException { SqlState: PostgresErrorCodes.SerializationFailure }) return true;
+        return false;
     }
 
     public void Detach(object entity) => _db.Entry(entity).State = EntityState.Detached;
