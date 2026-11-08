@@ -44,6 +44,8 @@ const ACTION: Record<string, string> = {
   inventory_imported: 'Importó inventario',
   inventory_item_created: 'Creó un producto de inventario',
   inventory_item_updated: 'Modificó un producto de inventario',
+  commercial_document_issued: 'Emitió factura comercial',
+  commercial_document_cancelled: 'Canceló factura comercial',
   invoice_issued: 'Emitió factura',
   order_created: 'Creó una orden',
   order_deleted: 'Eliminó una orden',

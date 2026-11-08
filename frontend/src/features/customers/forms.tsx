@@ -1,3 +1,4 @@
+import { useShopSettings } from '../../lib/shop'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { customersApi } from '../../api/endpoints'
@@ -19,6 +20,7 @@ export function CustomerForm({ initial, customerId, submitLabel = 'Guardar', onS
   onDirtyChange?: (dirty: boolean) => void
   compact?: boolean
 }) {
+  const fiscalArgentina = useShopSettings().data?.country === 'AR'
   const [v, setV] = useState<CustomerInput>(initial)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
@@ -94,6 +96,7 @@ export function CustomerForm({ initial, customerId, submitLabel = 'Guardar', onS
 
       {!compact ? (
         <>
+          {fiscalArgentina ? (
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Documento">
               <Select value={v.documentType} onChange={(e) => set('documentType', e.target.value as DocumentType)}>
@@ -117,6 +120,7 @@ export function CustomerForm({ initial, customerId, submitLabel = 'Guardar', onS
               </Select>
             </Field>
           </div>
+          ) : null}
           <Field label="Dirección">
             <Input value={v.address ?? ''} onChange={(e) => set('address', e.target.value)} />
           </Field>

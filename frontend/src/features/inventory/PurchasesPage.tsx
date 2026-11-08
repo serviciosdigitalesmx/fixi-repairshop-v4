@@ -477,7 +477,7 @@ function SuppliersTab() {
                 <Th>Contacto</Th>
                 <Th>Teléfono</Th>
                 <Th>Correo electrónico</Th>
-                <Th>CUIT</Th>
+                <Th>Identificación del proveedor</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -559,7 +559,7 @@ function SupplierDialog({ supplier, onClose, onSaved }: { supplier: Supplier | n
         <Field label="Correo electrónico">
           <Input type="email" value={v.email} onChange={(e) => set('email', e.target.value)} />
         </Field>
-        <Field label="CUIT">
+        <Field label="Identificación del proveedor">
           <Input value={v.taxId} onChange={(e) => set('taxId', e.target.value)} />
         </Field>
         <Field label="Notas" className="sm:col-span-2">

@@ -281,6 +281,12 @@ function RefundDialog({ order, payment, onClose, onDone }: { order: RepairOrder;
 }
 
 export function InvoiceDialog({ orderId, saleId, onClose, onDone }: { orderId?: string; saleId?: string; onClose: () => void; onDone: () => void }) {
+  return <Modal open title="Factura comercial mexicana" onClose={onClose} footer={<Button onClick={onDone}>Listo</Button>}>
+    <CommercialInvoices sourceType={orderId ? 'RepairOrder' : 'Sale'} sourceId={orderId ?? saleId} />
+  </Modal>
+}
+
+export function LegacyFiscalInvoiceDialog({ orderId, saleId, onClose, onDone }: { orderId?: string; saleId?: string; onClose: () => void; onDone: () => void }) {
   const [docType, setDocType] = useState<DocumentType>('None')
   const [docNumber, setDocNumber] = useState('')
   const [name, setName] = useState('')

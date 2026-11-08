@@ -1,3 +1,4 @@
+import { useShopSettings } from '../../lib/shop'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -288,6 +289,7 @@ export function CustomerDetailPage() {
   const location = useLocation()
   const { can } = useSession()
   const queryClient = useQueryClient()
+  const fiscalArgentina = useShopSettings().data?.country === 'AR'
   const summary = useQuery({ queryKey: ['customer', id, 'summary'], queryFn: () => customersApi.summary(id) })
   const [editing, setEditing] = useState(false)
   const [editDirty, setEditDirty] = useState(false)
@@ -363,8 +365,8 @@ export function CustomerDetailPage() {
             items={[
               { label: 'Teléfono', value: c.phone },
               { label: 'Correo electrónico', value: c.email ?? '—' },
-              { label: 'Documento', value: c.documentType === 'None' ? '—' : `${DOCUMENT_TYPE[c.documentType]} ${c.documentNumber}` },
-              { label: 'Condición fiscal', value: TAX_CONDITION[c.taxCondition] },
+              { label: 'Documento', hidden: !fiscalArgentina, value: c.documentType === 'None' ? '—' : `${DOCUMENT_TYPE[c.documentType]} ${c.documentNumber}` },
+              { label: 'Condición fiscal', hidden: !fiscalArgentina, value: TAX_CONDITION[c.taxCondition] },
               { label: 'Dirección', value: c.address ?? '—' },
               { label: 'Avisos', value: c.notificationsOptIn ? 'Acepta mensajes' : 'No acepta mensajes' },
               { label: 'Notas', value: c.notes ?? '—', hidden: !c.notes },
