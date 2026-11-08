@@ -131,20 +131,22 @@ public sealed class CommercialDocument : IShopScoped
         if (_lines.Count == 0) throw new DomainException("El documento debe contener al menos un concepto.");
 
         Subtotal = Money.Round(_lines.Sum(line => line.Total));
+        if (discountAmount < 0) throw new DomainException("El descuento global no puede ser negativo.");
         DiscountAmount = Money.Round(discountAmount);
-        if (DiscountAmount < 0) throw new DomainException("El descuento global no puede ser negativo.");
         if (DiscountAmount > Subtotal) throw new DomainException("El descuento global no puede superar el subtotal.");
 
         Total = Money.Round(Subtotal - DiscountAmount);
+        if (operationTotal < 0)
+            throw new DomainException("El importe de la operación no puede ser negativo.");
         var reportedTotal = Money.Round(operationTotal);
-        if (reportedTotal < 0 || Total != reportedTotal)
+        if (Total != reportedTotal)
             throw new DomainException($"Los conceptos suman {Subtotal:0.00} MXN, el descuento global es {DiscountAmount:0.00} MXN y el total calculado es {Total:0.00} MXN; la operación registra {reportedTotal:0.00} MXN.");
 
         ArgumentNullException.ThrowIfNull(payments);
         foreach (var payment in payments) _payments.Add(new CommercialDocumentPayment(payment));
 
+        if (changeAmount < 0) throw new DomainException("El cambio no puede ser negativo.");
         ChangeAmount = Money.Round(changeAmount);
-        if (ChangeAmount < 0) throw new DomainException("El cambio no puede ser negativo.");
 
         var cashReceived = _payments
             .Where(payment => payment.Type == CommercialPaymentMovementType.Payment && !payment.IsDeposit && payment.Method == PaymentMethod.Cash)

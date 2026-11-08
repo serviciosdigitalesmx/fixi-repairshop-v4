@@ -69,6 +69,58 @@ public sealed class CommercialDocumentTests
         act.Should().Throw<DomainException>().WithMessage("*descuento global no puede superar*");
     }
 
+    [Theory]
+    [InlineData(-0.004m)]
+    [InlineData(-0.0049m)]
+    [InlineData(-0.005m)]
+    [InlineData(-0.0051m)]
+    public void Commercial_document_rejects_negative_global_discount_before_rounding(decimal discountAmount)
+    {
+        var act = () => Create(discountAmount: discountAmount);
+
+        act.Should().Throw<DomainException>().WithMessage("*descuento global no puede ser negativo*");
+    }
+
+    [Theory]
+    [InlineData(-0.004m)]
+    [InlineData(-0.0049m)]
+    [InlineData(-0.005m)]
+    [InlineData(-0.0051m)]
+    public void Commercial_document_rejects_negative_operation_total_before_rounding(decimal operationTotal)
+    {
+        var act = () => Create(operationTotal: operationTotal);
+
+        act.Should().Throw<DomainException>().WithMessage("*importe de la operación no puede ser negativo*");
+    }
+
+    [Theory]
+    [InlineData(-0.004m)]
+    [InlineData(-0.0049m)]
+    [InlineData(-0.005m)]
+    [InlineData(-0.0051m)]
+    public void Commercial_document_rejects_negative_change_before_rounding(decimal changeAmount)
+    {
+        var act = () => Create(changeAmount: changeAmount);
+
+        act.Should().Throw<DomainException>().WithMessage("*cambio no puede ser negativo*");
+    }
+
+    [Fact]
+    public void Commercial_document_allows_zero_operation_amount_and_zero_discount_and_change()
+    {
+        var document = Create(
+            lines: new[] { new CommercialDocumentLineInput("Garantía", 1, 0) },
+            discountAmount: 0,
+            changeAmount: 0,
+            operationTotal: 0);
+
+        document.Subtotal.Should().Be(0);
+        document.DiscountAmount.Should().Be(0);
+        document.Total.Should().Be(0);
+        document.ChangeAmount.Should().Be(0);
+        document.BalanceAtIssue.Should().Be(0);
+    }
+
     [Fact]
     public void Commercial_document_rejects_empty_or_invalid_concepts()
     {
