@@ -78,6 +78,7 @@ public static class DependencyInjection
 
     private static void AddRepositories(IServiceCollection services)
     {
+        services.AddScoped<ICommercialDocumentRepository, CommercialDocumentRepository>();
         // Core
         services.AddScoped<IShopRepository, ShopRepository>();
         services.AddScoped<IShopIntegrationRepository, ShopIntegrationRepository>();

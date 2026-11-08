@@ -44,6 +44,8 @@ public sealed class RepairShopDbContext : DbContext, IDataProtectionKeyContext
     /// </summary>
     public Guid? CurrentShopId => _tenant.ShopId;
 
+    public DbSet<RepairShop.Domain.CommercialDocuments.CommercialDocument> CommercialDocuments => Set<RepairShop.Domain.CommercialDocuments.CommercialDocument>();
+
     // Core
     public DbSet<Shop> Shops => Set<Shop>();
     public DbSet<ShopIntegration> ShopIntegrations => Set<ShopIntegration>();

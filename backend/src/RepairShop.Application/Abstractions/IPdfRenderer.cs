@@ -144,5 +144,6 @@ public interface IPdfRenderer
     byte[] SaleTicket(SaleTicketModel model);
     byte[] WarrantyCertificate(WarrantyCertificateModel model);
     byte[] Invoice(InvoiceDocumentModel model);
+    byte[] CommercialInvoice(RepairShop.Domain.CommercialDocuments.CommercialDocument model);
     byte[] CashReport(CashReportModel model);
 }

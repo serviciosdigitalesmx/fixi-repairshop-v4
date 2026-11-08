@@ -11,8 +11,8 @@ import { Alert, Badge, Button, Card, Checkbox, EmptyState, ErrorState, Field, In
 import { dateTime, money } from '../../lib/format'
 import { openPdf, printPdf } from '../../lib/files'
 import { useDebounced } from '../../lib/hooks'
-import { INVOICE_STATUS, PAYMENT_METHOD, SALE_STATUS, VOUCHER_TYPE } from '../../lib/labels'
-import { InvoiceDialog } from '../orders/panels/PaymentsPanel'
+import { PAYMENT_METHOD, SALE_STATUS } from '../../lib/labels'
+import { CommercialInvoices } from './CommercialInvoices'
 
 const TAKE = 25
 const METHODS: PaymentMethod[] = ['Cash', 'Card', 'Transfer', 'MercadoPago', 'Other']
@@ -166,10 +166,8 @@ export function SaleDialog({ saleId, onClose }: { saleId: string; onClose: () =>
   const { role } = useSession()
   const queryClient = useQueryClient()
   const sale = useQuery({ queryKey: ['sales', saleId], queryFn: () => salesApi.get(saleId) })
-  const invoices = useQuery({ queryKey: ['sales', saleId, 'invoices'], queryFn: () => salesApi.invoices(saleId) })
   const [refunding, setRefunding] = useState(false)
   const [voiding, setVoiding] = useState(false)
-  const [invoicing, setInvoicing] = useState(false)
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ['sales'] })
@@ -180,7 +178,6 @@ export function SaleDialog({ saleId, onClose }: { saleId: string; onClose: () =>
 
   const s = sale.data
   const canRefund = s && s.status !== 'Voided' && s.status !== 'Refunded' && s.lines.some((l) => l.refundedQuantity < l.quantity)
-  const authorized = (invoices.data ?? []).some((i) => i.status === 'Authorized' && !i.voucherType.startsWith('NotaCredito'))
 
   return (
     <Modal
@@ -199,7 +196,6 @@ export function SaleDialog({ saleId, onClose }: { saleId: string; onClose: () =>
             ) : null}
             <Button onClick={() => void openPdf(`/sales/${s.id}/ticket`)}>Ver ticket</Button>
             <Button onClick={() => void printPdf(`/sales/${s.id}/ticket`)}>Imprimir</Button>
-            {!authorized && s.status !== 'Voided' ? <Button onClick={() => setInvoicing(true)}>Facturar</Button> : null}
             {canRefund ? (
               <Button variant="primary" onClick={() => setRefunding(true)}>
                 Devolución
@@ -314,29 +310,7 @@ export function SaleDialog({ saleId, onClose }: { saleId: string; onClose: () =>
             </div>
           ) : null}
 
-          {(invoices.data ?? []).length > 0 ? (
-            <div className="text-sm">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Comprobantes fiscales</p>
-              <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
-                {invoices.data!.map((i) => (
-                  <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-                    <span>
-                      {VOUCHER_TYPE[i.voucherType] ?? i.voucherType} {i.code}
-                      <Badge tone={INVOICE_STATUS[i.status]?.tone ?? 'slate'} className="ml-2">
-                        {INVOICE_STATUS[i.status]?.label ?? i.status}
-                      </Badge>
-                      {i.resultMessage && i.status !== 'Authorized' ? <span className="block text-xs text-rose-600">{i.resultMessage}</span> : null}
-                    </span>
-                    {i.status === 'Authorized' ? (
-                      <Button size="sm" variant="ghost" onClick={() => void openPdf(`/invoices/${i.id}/pdf`)}>
-                        PDF
-                      </Button>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+          <CommercialInvoices sourceType="Sale" sourceId={s.id} />
           {s.notes ? <p className="text-sm text-slate-600">Nota: {s.notes}</p> : null}
         </div>
       )}
@@ -361,17 +335,7 @@ export function SaleDialog({ saleId, onClose }: { saleId: string; onClose: () =>
           }}
         />
       ) : null}
-      {invoicing && s ? (
-        <InvoiceDialog
-          saleId={s.id}
-          onClose={() => setInvoicing(false)}
-          onDone={() => {
-            setInvoicing(false)
-            void queryClient.invalidateQueries({ queryKey: ['sales', saleId, 'invoices'] })
-            void queryClient.invalidateQueries({ queryKey: ['invoices'] })
-          }}
-        />
-      ) : null}
+
     </Modal>
   )
 }

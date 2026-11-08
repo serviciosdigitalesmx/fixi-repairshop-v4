@@ -36,9 +36,16 @@ public sealed class UnitOfWork : IUnitOfWork
         if (_db.Database.CurrentTransaction is not null) return await work(ct);
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        var result = await work(ct);
-        await tx.CommitAsync(ct);
-        return result;
+        try
+        {
+            var result = await work(ct);
+            await tx.CommitAsync(ct);
+            return result;
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.SerializationFailure)
+        {
+            throw new ConcurrencyConflictException(ex);
+        }
     }
 
     public async Task<T> RetryOnConflictAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct, int maxAttempts = 3)

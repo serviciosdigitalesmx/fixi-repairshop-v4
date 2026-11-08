@@ -59,6 +59,9 @@ public sealed class CommercialDocument : IShopScoped
     public Guid ShopId { get; private set; }
     public CommercialDocumentSourceType SourceType { get; private set; }
     public Guid SourceId { get; private set; }
+    public string? SourceReference { get; private set; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? LogoBase64 { get; private set; }
     public int Number { get; private set; }
     public string Currency { get; private set; } = "MXN";
     public DateTime IssuedAtUtc { get; private set; }
@@ -102,7 +105,9 @@ public sealed class CommercialDocument : IShopScoped
         decimal changeAmount,
         decimal operationTotal,
         Guid createdByUserId,
-        DateTime nowUtc)
+        DateTime nowUtc,
+        string? sourceReference = null,
+        string? logoBase64 = null)
     {
         if (shopId == Guid.Empty) throw new DomainException("El documento debe pertenecer a una sucursal.");
         if (!Enum.IsDefined(sourceType)) throw new DomainException("El origen del documento no es válido.");
@@ -116,6 +121,8 @@ public sealed class CommercialDocument : IShopScoped
         ShopId = shopId;
         SourceType = sourceType;
         SourceId = sourceId;
+        SourceReference = sourceReference;
+        LogoBase64 = logoBase64;
         Number = number;
         Currency = normalizedCurrency;
         Issuer = NormalizeParty(issuer, "El emisor");
