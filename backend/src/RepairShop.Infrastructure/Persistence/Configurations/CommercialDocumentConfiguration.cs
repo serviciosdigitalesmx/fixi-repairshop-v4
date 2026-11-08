@@ -40,4 +40,3 @@ internal sealed class CommercialDocumentPaymentConfiguration : IEntityTypeConfig
         b.Property(d => d.Amount).HasColumnType(ConfigurationExtensions.MoneyType);
     }
 }
-

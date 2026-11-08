@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { get, getPage, post, newIdempotencyKey } from '../../api/http'
 import { errorMessage } from '../../api/http'
 import { useSession } from '../../auth/session'
-import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, Loading, Modal, PageHeader } from '../../components/ui'
+import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, Loading, Modal } from '../../components/ui'
 import { money, dateTime } from '../../lib/format'
 import { downloadFile, openPdf, printPdf } from '../../lib/files'
 
@@ -17,16 +17,13 @@ interface Document {
   lines: { id: string; description: string; quantity: number; unitPrice: number; discountAmount: number; total: number }[]
   payments: { id: string; type: string; method: string; amount: number; isDeposit: boolean; reference?: string }[]
 }
-export const commercialApi = {
+const commercialApi = {
   search: (q: string, sourceType?: Source, sourceId?: string, skip = 0) => getPage<Document>('/commercial-documents', { q, sourceType, sourceId, skip, take: 25 }),
   get: (id: string) => get<Document>(`/commercial-documents/${id}`),
   issue: (sourceType: Source, sourceId: string) => post<Document>('/commercial-documents', { sourceType, sourceId }, { idempotencyKey: newIdempotencyKey() }),
   cancel: (id: string, reason: string) => post<Document>(`/commercial-documents/${id}/cancel`, { reason }, { idempotencyKey: newIdempotencyKey() }),
 }
 const legend = 'Documento comercial sin validez fiscal. No constituye un CFDI'
-export function CommercialInvoicesPage() {
-  return <><PageHeader title="Facturas comerciales" subtitle={legend} /><CommercialInvoices /></>
-}
 export function CommercialInvoices({ sourceType, sourceId }: { sourceType?: Source; sourceId?: string }) {
   const { role, can } = useSession()
   const client = useQueryClient()

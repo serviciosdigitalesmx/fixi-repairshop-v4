@@ -20,7 +20,7 @@ const CustomersPage = page(() => import('./features/customers/CustomersPage'), '
 const CustomerDetailPage = page(() => import('./features/customers/CustomersPage'), 'CustomerDetailPage')
 const PosPage = page(() => import('./features/pos/PosPage'), 'PosPage')
 const SalesPage = page(() => import('./features/sales/SalesPage'), 'SalesPage')
-const InvoicesPage = page(() => import('./features/sales/CommercialInvoices'), 'CommercialInvoicesPage')
+const InvoicesPage = page(() => import('./features/sales/InvoicesPage'), 'InvoicesPage')
 const CashPage = page(() => import('./features/cash/CashPage'), 'CashPage')
 const InventoryPage = page(() => import('./features/inventory/InventoryPage'), 'InventoryPage')
 const PurchasesPage = page(() => import('./features/inventory/PurchasesPage'), 'PurchasesPage')
