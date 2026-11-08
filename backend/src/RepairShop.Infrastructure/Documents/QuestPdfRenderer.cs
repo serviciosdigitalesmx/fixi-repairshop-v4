@@ -487,7 +487,7 @@ public sealed class QuestPdfRenderer : IPdfRenderer
             foreach (var l in lines)
             {
                 t.Cell().Element(BodyCell).Text(l.Description);
-                t.Cell().Element(BodyCell).AlignRight().Text(l.Quantity.ToString("0.##", CultureInfo.InvariantCulture));
+                t.Cell().Element(BodyCell).AlignRight().Text(l.Quantity.ToString(currency == "MXN" ? "0.###" : "0.##", CultureInfo.InvariantCulture));
                 t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.UnitPrice.ToString("N2", CultureInfo.GetCultureInfo("es-MX")) : Money(l.UnitPrice)));
                 if (showDiscount) t.Cell().Element(BodyCell).AlignRight().Text(l.Discount == 0 ? "—" : (currency == "MXN" ? l.Discount.ToString("N2", CultureInfo.GetCultureInfo("es-MX")) : Money(l.Discount)));
                 t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.Total.ToString("N2", CultureInfo.GetCultureInfo("es-MX")) : Money(l.Total)));

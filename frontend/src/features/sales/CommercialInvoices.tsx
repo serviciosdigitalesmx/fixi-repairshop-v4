@@ -6,7 +6,7 @@ import { errorMessage } from '../../api/http'
 import { useSession } from '../../auth/session'
 import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, Loading, Modal, PageHeader } from '../../components/ui'
 import { money, dateTime } from '../../lib/format'
-import { openPdf } from '../../lib/files'
+import { downloadFile, openPdf, printPdf } from '../../lib/files'
 
 type Source = 'Sale' | 'RepairOrder'
 interface Party { name: string; legalName?: string; address?: string; phone?: string; email?: string }
@@ -46,7 +46,7 @@ export function CommercialInvoices({ sourceType, sourceId }: { sourceType?: Sour
       <Badge tone={d.status === 'Issued' ? 'green' : 'slate'}>{d.status === 'Issued' ? 'Vigente' : 'Cancelada'}</Badge><Button onClick={() => { setSelected(d); setReason('') }}>Ver detalle</Button>
     </div>)}</div>}
     {!sourceId ? <div className="mt-3 flex gap-2"><Button disabled={skip === 0} onClick={() => setSkip(s => Math.max(0, s - 25))}>Anterior</Button><Button disabled={skip + 25 >= (query.data?.total ?? 0)} onClick={() => setSkip(s => s + 25)}>Siguiente</Button></div> : null}
-    {selected ? <Modal open title={`Factura comercial FC-${selected.number}`} onClose={() => setSelected(null)} footer={<><Button onClick={() => void openPdf(`/commercial-documents/${selected.id}/pdf`)}>Descargar PDF / imprimir</Button><Button onClick={() => setSelected(null)}>Cerrar</Button></>}>
+    {selected ? <Modal open title={`Factura comercial FC-${selected.number}`} onClose={() => setSelected(null)} footer={<><Button onClick={() => void openPdf(`/commercial-documents/${selected.id}/pdf`)}>Ver PDF</Button><Button onClick={() => void downloadFile(`/commercial-documents/${selected.id}/pdf`, `factura-comercial-${selected.number}.pdf`)}>Descargar PDF</Button><Button onClick={() => void printPdf(`/commercial-documents/${selected.id}/pdf`)}>Imprimir</Button><Button onClick={() => setSelected(null)}>Cerrar</Button></>}>
       <p>{legend}</p><p className="mt-2">{selected.issuer.legalName ?? selected.issuer.name} · {selected.recipient?.name}</p>
       {selected.lines.map(l => <p className="mt-2" key={l.id}>{l.description} · {l.quantity} × {money(l.unitPrice, 'MXN')} · descuento {money(l.discountAmount, 'MXN')} · {money(l.total, 'MXN')}</p>)}
       <p className="mt-3">Subtotal: {money(selected.subtotal, 'MXN')} · Descuento global: {money(selected.discountAmount, 'MXN')}</p>
