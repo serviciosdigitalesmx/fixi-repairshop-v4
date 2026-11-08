@@ -69,40 +69,37 @@ public sealed class CommercialDocumentTests
         act.Should().Throw<DomainException>().WithMessage("*descuento global no puede superar*");
     }
 
-    [Theory]
-    [InlineData(-0.004m)]
-    [InlineData(-0.0049m)]
-    [InlineData(-0.005m)]
-    [InlineData(-0.0051m)]
-    public void Commercial_document_rejects_negative_global_discount_before_rounding(decimal discountAmount)
+    [Fact]
+    public void Commercial_document_rejects_negative_global_discount_before_rounding()
     {
-        var act = () => Create(discountAmount: discountAmount);
+        foreach (var discountAmount in new[] { -0.004m, -0.0049m, -0.005m, -0.0051m })
+        {
+            var act = () => Create(discountAmount: discountAmount);
 
-        act.Should().Throw<DomainException>().WithMessage("*descuento global no puede ser negativo*");
+            act.Should().Throw<DomainException>().WithMessage("*descuento global no puede ser negativo*");
+        }
     }
 
-    [Theory]
-    [InlineData(-0.004m)]
-    [InlineData(-0.0049m)]
-    [InlineData(-0.005m)]
-    [InlineData(-0.0051m)]
-    public void Commercial_document_rejects_negative_operation_total_before_rounding(decimal operationTotal)
+    [Fact]
+    public void Commercial_document_rejects_negative_operation_total_before_rounding()
     {
-        var act = () => Create(operationTotal: operationTotal);
+        foreach (var operationTotal in new[] { -0.004m, -0.0049m, -0.005m, -0.0051m })
+        {
+            var act = () => Create(operationTotal: operationTotal);
 
-        act.Should().Throw<DomainException>().WithMessage("*importe de la operación no puede ser negativo*");
+            act.Should().Throw<DomainException>().WithMessage("*importe de la operación no puede ser negativo*");
+        }
     }
 
-    [Theory]
-    [InlineData(-0.004m)]
-    [InlineData(-0.0049m)]
-    [InlineData(-0.005m)]
-    [InlineData(-0.0051m)]
-    public void Commercial_document_rejects_negative_change_before_rounding(decimal changeAmount)
+    [Fact]
+    public void Commercial_document_rejects_negative_change_before_rounding()
     {
-        var act = () => Create(changeAmount: changeAmount);
+        foreach (var changeAmount in new[] { -0.004m, -0.0049m, -0.005m, -0.0051m })
+        {
+            var act = () => Create(changeAmount: changeAmount);
 
-        act.Should().Throw<DomainException>().WithMessage("*cambio no puede ser negativo*");
+            act.Should().Throw<DomainException>().WithMessage("*cambio no puede ser negativo*");
+        }
     }
 
     [Fact]
