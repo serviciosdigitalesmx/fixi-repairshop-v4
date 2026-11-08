@@ -33,6 +33,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
     { to: '/reports', label: 'Reportes', icon: 'reports', permission: 'reports' },
     { to: '/messages', label: 'Mensajes', icon: 'messages', permission: 'orders.work' },
     { to: '/settings', label: 'Configuración', icon: 'settings', permission: 'admin' },
+    { to: '/settings?tab=branches', label: 'Sucursales', icon: 'branches', permission: 'admin' },
     { to: '/billing', label: 'Suscripción', icon: 'billing', permission: 'admin' },
   ] },
 ]
@@ -54,6 +55,7 @@ export function AppIcon({ name, className }: { name: string; className?: string 
     messages: 'M4 5h16v12H9l-5 4zM8 9h8m-8 4h5',
     settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8m0-5v2m0 14v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M3 12h2m14 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
     billing: 'M4 5h16v14H4zM4 9h16m-12 5h4',
+    branches: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
     menu: 'M4 6h16M4 12h16M4 18h16',
     sun: 'M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
     moon: 'M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z',
@@ -89,7 +91,8 @@ export function AppLayout() {
   const primary = nav[0]
   const secondary = nav.slice(1)
   const allItems = NAV.flatMap(s => s.items)
-  const activeTitle = allItems.find(i => location.pathname === i.to)?.label ?? allItems.find(i => i.to !== '/' && location.pathname.startsWith(i.to + '/'))?.label ?? 'Fixi'
+  const isBranchesSettings = location.pathname === '/settings' && new URLSearchParams(location.search).get('tab') === 'branches'
+  const activeTitle = isBranchesSettings ? 'Sucursales' : allItems.find(i => location.pathname === i.to)?.label ?? allItems.find(i => i.to !== '/' && !i.to.includes('?') && location.pathname.startsWith(i.to + '/'))?.label ?? 'Fixi'
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -126,7 +129,12 @@ export function AppLayout() {
 
   const navLink = (item: NavItem) => (
       <NavLink key={item.to} to={item.to} end={item.end} title={item.label} aria-label={item.label} onClick={() => setMobileOpen(false)}
-      className={({ isActive }) => cn('fixi-navlink', isActive && 'is-active')}>
+      className={({ isActive }) => {
+        const isSettingsLink = item.to === '/settings'
+        const isBranchesLink = item.to === '/settings?tab=branches'
+        const isCurrentLink = isBranchesLink ? isBranchesSettings : isSettingsLink ? location.pathname === '/settings' && !isBranchesSettings : isActive
+        return cn('fixi-navlink', isCurrentLink && 'is-active')
+      }}>
       <AppIcon name={item.icon}/><span>{item.label}</span>
     </NavLink>
   )
