@@ -21,7 +21,7 @@ test('Mexico commercial invoice: issue, inspect, cancel and reissue with a new f
   await page.getByRole('button', { name: 'Emitir factura comercial', exact: true }).click()
   await expect(page.getByRole('dialog')).toContainText('Documento comercial sin validez fiscal. No constituye un CFDI')
   await expect(page.getByRole('dialog')).toContainText('FC-1')
-  const downloading = page.waitForEvent('download')
+  const downloading = page.waitForEvent('download', { timeout: 15_000 })
   await page.getByRole('button', { name: 'Descargar PDF', exact: true }).click()
   const download = await downloading
   expect(download.suggestedFilename()).toMatch(/factura-comercial-.*\.pdf/)

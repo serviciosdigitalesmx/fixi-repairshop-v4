@@ -267,7 +267,7 @@ public sealed class QuestPdfRenderer : IPdfRenderer
     public byte[] CommercialInvoice(RepairShop.Domain.CommercialDocuments.CommercialDocument m) => Document.Create(doc => doc.Page(page =>
     {
         A4(page);
-        static string Amount(decimal value) => value.ToString("N2", CultureInfo.GetCultureInfo("es-MX")) + " MXN";
+        static string Amount(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture) + " MXN";
         page.Header().Column(h =>
         {
             if (m.LogoBase64 is not null) h.Item().Height(45).Image(Convert.FromBase64String(m.LogoBase64)).FitHeight();
@@ -488,9 +488,9 @@ public sealed class QuestPdfRenderer : IPdfRenderer
             {
                 t.Cell().Element(BodyCell).Text(l.Description);
                 t.Cell().Element(BodyCell).AlignRight().Text(l.Quantity.ToString(currency == "MXN" ? "0.###" : "0.##", CultureInfo.InvariantCulture));
-                t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.UnitPrice.ToString("N2", CultureInfo.GetCultureInfo("es-MX")) : Money(l.UnitPrice)));
-                if (showDiscount) t.Cell().Element(BodyCell).AlignRight().Text(l.Discount == 0 ? "—" : (currency == "MXN" ? l.Discount.ToString("N2", CultureInfo.GetCultureInfo("es-MX")) : Money(l.Discount)));
-                t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.Total.ToString("N2", CultureInfo.GetCultureInfo("es-MX")) : Money(l.Total)));
+                t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.UnitPrice.ToString("N2", CultureInfo.InvariantCulture) : Money(l.UnitPrice)));
+                if (showDiscount) t.Cell().Element(BodyCell).AlignRight().Text(l.Discount == 0 ? "—" : (currency == "MXN" ? l.Discount.ToString("N2", CultureInfo.InvariantCulture) : Money(l.Discount)));
+                t.Cell().Element(BodyCell).AlignRight().Text((currency == "MXN" ? l.Total.ToString("N2", CultureInfo.InvariantCulture) : Money(l.Total)));
             }
         });
 
