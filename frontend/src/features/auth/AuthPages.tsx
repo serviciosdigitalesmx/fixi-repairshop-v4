@@ -121,7 +121,7 @@ export function LoginPage() {
           <span>Administra tu taller desde el celular.</span>
         </div>
         <a href="/downloads/fixi-android.apk" download>
-          Descargar APK 4.0.1
+          Descargar APK 4.0.3
         </a>
       </aside>
 
