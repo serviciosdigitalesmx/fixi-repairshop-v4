@@ -48,6 +48,9 @@ test('a new shop signs up, gets the trial and picks a plan', async ({ page }) =>
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Tablero', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Tablero del taller' })).toBeVisible()
   await expect(reminders).toHaveCount(0)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Tablero del taller' })).toBeVisible()
+  await expect(reminders).toHaveCount(0)
 
   // A new authenticated entry shows both pending reminders again.
   await page.getByRole('button', { name: 'Dueño E2E · Administrador', exact: true }).click()

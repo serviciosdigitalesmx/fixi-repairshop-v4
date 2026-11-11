@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { billingApi } from '../../api/endpoints'
 import { useSession } from '../../auth/session'
+import { dismissedAccountReminders, saveAccountReminders } from '../../lib/accountReminders'
 import { SUBSCRIPTION_KEY, VerifyEmailAlert } from '../../features/billing/shared'
 import { AccountReminderCard } from './AccountReminderCard'
 
-/** Dismissals last until this authenticated layout unmounts or the shop changes. */
+/** Dismissals survive reloads in this tab, and reset on login or a shop change. */
 export function SubscriptionBanner() {
-  const { can } = useSession()
-  const [dismissed, setDismissed] = useState<string[]>([])
+  const { user, can } = useSession()
+  const scope = `${user?.id}:${user?.shopId}`
+  const [dismissed, setDismissed] = useState(() => dismissedAccountReminders(scope))
   const sub = useQuery({ queryKey: SUBSCRIPTION_KEY, queryFn: billingApi.subscription, staleTime: 60_000, retry: false })
   const s = sub.data
   if (!s) return null
@@ -18,7 +20,11 @@ export function SubscriptionBanner() {
   const subscriptionId = `subscription:${s.status}`
   const showSubscription = ['Expired', 'PastDue', 'Trialing'].includes(s.status) && !dismissed.includes(subscriptionId)
   const showEmail = isAdmin && !s.emailVerified && !dismissed.includes('email')
-  const dismiss = (id: string) => setDismissed(current => [...current, id])
+  const dismiss = (id: string) => {
+    const next = [...dismissed, id]
+    setDismissed(next)
+    saveAccountReminders(scope, next)
+  }
   if (!showSubscription && !showEmail) return null
 
   const plansLink = isAdmin ? (

@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test'
+import type { Subscription } from '../src/api/types'
 
 // Users created by the development seed (Seed__Enabled=true).
 export const USERS = {
@@ -13,8 +14,18 @@ export async function login(page: Page, who: keyof typeof USERS) {
   await page.goto('/login')
   await page.getByLabel('Correo electrónico').fill(user.email)
   await page.getByLabel('Contraseña').fill(user.password)
+  const subscriptionReady = page.waitForResponse(response => response.url().includes('/billing/subscription') && response.ok())
   await page.getByRole('button', { name: 'Ingresar' }).click()
   await expect(page.getByRole('navigation', { name: 'Principal' }).first()).toBeVisible()
+  // Clear the entry reminders through their real controls before working.
+  const subscription: Subscription = await (await subscriptionReady).json()
+  const reminders = page.getByRole('complementary', { name: 'Recordatorios de tu cuenta' })
+  if (['Trialing', 'PastDue', 'Expired'].includes(subscription.status) || (who === 'admin' && !subscription.emailVerified)) {
+    await expect(reminders).toBeVisible()
+    const closeButtons = reminders.getByRole('button', { name: /^Cerrar aviso:/ })
+    for (let remaining = await closeButtons.count(); remaining > 0; remaining--) await closeButtons.first().click()
+    await expect(reminders).toHaveCount(0)
+  }
 }
 
 export function uniquePhone() {
