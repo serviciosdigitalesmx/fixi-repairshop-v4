@@ -18,7 +18,7 @@ export async function login(page: Page, who: keyof typeof USERS) {
   await page.getByRole('button', { name: 'Ingresar' }).click()
   await expect(page.getByRole('navigation', { name: 'Principal' }).first()).toBeVisible()
   // Clear the entry reminders through their real controls before working.
-  const subscription: Subscription = await (await subscriptionReady).json()
+  const { data: subscription }: { data: Subscription } = await (await subscriptionReady).json()
   const reminders = page.getByRole('complementary', { name: 'Recordatorios de tu cuenta' })
   if (['Trialing', 'PastDue', 'Expired'].includes(subscription.status) || (who === 'admin' && !subscription.emailVerified)) {
     await expect(reminders).toBeVisible()
