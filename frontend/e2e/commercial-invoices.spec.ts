@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { dismissAccountReminders } from './helpers'
 
 test('Mexico commercial invoice: issue, inspect, cancel and reissue with a new folio', async ({ page, request }) => {
   test.setTimeout(120_000)
@@ -17,6 +18,8 @@ test('Mexico commercial invoice: issue, inspect, cancel and reissue with a new f
   await page.getByLabel('Contraseña', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Ingresar', exact: true }).click()
   await expect(page).not.toHaveURL(/login/)
+  await expect(page.getByRole('complementary', { name: 'Recordatorios de tu cuenta' })).toBeVisible()
+  await dismissAccountReminders(page)
   await page.goto(`/orders/${order.id}?tab=payments`)
   await page.getByRole('button', { name: 'Emitir factura comercial', exact: true }).click()
   await expect(page.getByRole('dialog')).toContainText('Documento comercial sin validez fiscal. No constituye un CFDI')

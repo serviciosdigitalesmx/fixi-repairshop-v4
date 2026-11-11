@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '../api/endpoints'
 import { hasSessionHint, onSessionChange, refreshSession, setAccessToken, setSessionHint } from '../api/http'
 import type { LoginResponse, Permission, Role, ShopAccess, UserResponse } from '../api/types'
+import { resetAccountReminders } from '../lib/accountReminders'
 
 export type SessionState =
   | { status: 'loading' }
@@ -54,6 +55,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       const session = await authApi.login(email, password)
+      resetAccountReminders()
       queryClient.clear()
       apply(session)
     },
@@ -62,6 +64,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await authApi.logout()
+    resetAccountReminders()
     queryClient.clear()
     apply(null)
   }, [apply, queryClient])
@@ -69,6 +72,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const switchShop = useCallback(
     async (shopId: string) => {
       const session = await authApi.switchShop(shopId)
+      resetAccountReminders()
       queryClient.clear()
       apply(session)
     },
@@ -85,6 +89,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       can: (p) => !!auth?.permissions.includes(p),
       login,
       acceptSession: (s) => {
+        resetAccountReminders()
         queryClient.clear()
         apply(s)
       },
