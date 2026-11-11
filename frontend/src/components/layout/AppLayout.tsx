@@ -193,10 +193,10 @@ export function AppLayout() {
           </div>
         </header>
         <main id="contenido" className="fixi-main-content">
-          <SubscriptionBanner/>
           <Outlet/>
         </main>
       </div>
+      <SubscriptionBanner key={`${user?.id}:${user?.shopId}`} />
     </div>
   )
 }
