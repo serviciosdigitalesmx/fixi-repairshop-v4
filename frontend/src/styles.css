@@ -1485,7 +1485,7 @@ a:focus-visible,
 
 /* Brand foregrounds stay readable on the landing's bright turquoise. */
 :root .bg-brand-600 {
-  background-color: var(--fx-brand-ink);
+  background-color: var(--fx-brand);
   color: var(--fx-on-brand) !important;
 }
 
