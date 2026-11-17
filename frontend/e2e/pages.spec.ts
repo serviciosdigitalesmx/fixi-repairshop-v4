@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './web-fixtures'
 import { login } from './helpers'
 
 // Visits every section as an administrator and fails on runtime errors or failing API calls.

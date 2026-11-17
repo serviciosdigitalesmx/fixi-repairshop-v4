@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './web-fixtures'
 import { login } from './helpers'
 
 test('cashier opens the register and sells with a barcode, giving change', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './web-fixtures'
 
 // A visitor signs up from the pricing page, works during the trial and picks a plan.
 // In development the subscription is activated by the simulated provider (no real charge).

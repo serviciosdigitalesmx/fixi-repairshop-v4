@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './web-fixtures'
 import { login, uniquePhone } from './helpers'
 
 test('reception registers a repair and the customer follows it online', async ({ page, browser }) => {
