@@ -38,6 +38,7 @@ if (-not $ReuseServices) {
 }
 $state = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
 if ($state.frontend -ne 'http://127.0.0.1:15173' -or $state.api -ne 'http://127.0.0.1:18170' -or $state.database -notmatch '^fixi_web_qa_[0-9]+$') { throw 'Refusing a non-dedicated or non-local QA target.' }
+if ($state.head -ne (git -C $repo rev-parse HEAD)) { throw 'QA services were built for another commit; restart without -ReuseServices.' }
 $caseFiles = @('backoffice.spec.ts','commercial-invoices.spec.ts','order-lifecycle.spec.ts','pages.spec.ts','pos.spec.ts','signup.spec.ts','workshop.spec.ts')
 $groups = switch ($Group) {
   'All' { @(@{name='smoke';files=@('desktop-smoke.spec.ts')},@{name='full';files=@($caseFiles + 'desktop-integrity.spec.ts' + 'desktop-inventory.spec.ts')}) }
@@ -51,6 +52,7 @@ foreach ($stage in $groups) {
   $stageId = $stage.name + '-' + (Get-Date -Format 'HHmmss')
   $env:FIXI_QA_RUN = Join-Path $state.runRoot $stageId
   New-Item -ItemType Directory -Force -Path $env:FIXI_QA_RUN | Out-Null
+  $state | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $env:FIXI_QA_RUN 'environment.json') -Encoding utf8
   Push-Location (Join-Path $repo 'frontend')
   try { npx playwright test --config playwright.desktop.config.ts @($stage.files) --headed; $stageCode=$LASTEXITCODE } finally { Pop-Location }
   $safe = Join-Path $QaRoot ('evidence\' + $state.runId + '\' + $stageId)

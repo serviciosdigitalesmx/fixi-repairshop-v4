@@ -1,7 +1,25 @@
-import { test as base, expect, type BrowserContext, type Page } from '@playwright/test'
+import { test as base, expect, type BrowserContext, type Page, type Response } from '@playwright/test'
 import fs from 'node:fs/promises'
+import type { LoginResponse } from '../src/api/types'
 
 export type { Page } from '@playwright/test'
+
+// Ignore responses belonging to the page that is being replaced, and wait for a complete body.
+export async function completedResponse(response: Response): Promise<boolean> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return (await Promise.race([response.finished(), new Promise<Error>(resolve => {
+      timer = setTimeout(() => resolve(new Error('Response did not complete within 10 seconds')), 10_000)
+    })])) === null
+  } catch { return false } finally { clearTimeout(timer) }
+}
+export async function reloadAuthenticated(page: Page): Promise<LoginResponse> {
+  const started = Date.now()
+  const restored = page.waitForResponse(async response => response.url().endsWith('/auth/refresh') && response.ok()
+    && response.request().timing().startTime >= started && await completedResponse(response))
+  await page.reload()
+  return (await (await restored).json()).data as LoginResponse
+}
 
 type Mutation = { method: string; path: string; resource?: string; id?: string; expected?: Record<string, unknown>; authorization?: string; result?: string }
 const observedWrites = new WeakMap<BrowserContext, Mutation[]>()
@@ -54,6 +72,7 @@ export const test = base.extend<{ safeEvidence: void }>({
     const errors: string[] = []
     const pending: Promise<void>[] = []
     const writes: Mutation[] = []
+    const incompleteWrites: string[] = []
     observedWrites.set(context, writes)
     let currentToken: string | undefined
     await context.addInitScript(() => {
@@ -84,6 +103,7 @@ export const test = base.extend<{ safeEvidence: void }>({
           }
         } catch (error) {
           errors.push(`HTTP body unavailable: ${request.method()} ${new URL(response.url()).pathname}: ${String(error)}`)
+          if (response.ok() && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method()) && !response.url().includes('/auth/')) incompleteWrites.push(`${request.method()} ${new URL(response.url()).pathname}`)
         }
         let input: unknown
         try { input = request.postDataJSON() } catch { input = request.postData() ? '[BINARY_OR_FORM]' : undefined }
@@ -103,12 +123,11 @@ export const test = base.extend<{ safeEvidence: void }>({
     await use()
     await Promise.allSettled(pending)
     try {
+    expect(incompleteWrites, 'Successful writes must have inspectable real response bodies').toEqual([])
     if (writes.length && testInfo.status === 'passed' && !page.isClosed()) {
       const hadSession = await page.evaluate(() => localStorage.getItem('rs.session') === '1')
       if (hadSession) {
-        const restored = page.waitForResponse(r => r.url().endsWith('/auth/refresh') && r.ok())
-        await page.reload()
-        currentToken = (await (await restored).json()).data.accessToken
+        currentToken = (await reloadAuthenticated(page)).accessToken
       } else await page.reload()
       const last = new Map<string, Mutation>()
       for (const write of writes) if (write.resource) last.set(`${write.resource}:${write.id ?? ''}`, write)

@@ -198,6 +198,7 @@ test('tenants and branches: session switch, cross-tenant denial and persisted br
   const back = page.waitForResponse(r => r.url().endsWith('/auth/switch-shop') && r.ok())
   await page.getByRole('combobox', { name: 'Cambiar de sucursal', exact: true }).selectOption(api.session.user.shopId)
   expect((await (await back).json()).data.user.shopId).toBe(api.session.user.shopId)
+  await expect(page.getByRole('complementary', { name: 'Recordatorios de tu cuenta' })).toBeVisible()
   await dismissAccountReminders(page)
 })
 

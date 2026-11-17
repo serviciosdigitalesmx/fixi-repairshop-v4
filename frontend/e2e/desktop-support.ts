@@ -1,6 +1,6 @@
 import type { APIResponse, Page } from '@playwright/test'
 import fs from 'node:fs/promises'
-import { test, expect, scrub } from './web-fixtures'
+import { test, expect, scrub, reloadAuthenticated, completedResponse } from './web-fixtures'
 import { login, type USERS } from './helpers'
 import type { LoginResponse } from '../src/api/types'
 
@@ -10,7 +10,9 @@ export async function signIn(page: Page, role: keyof typeof USERS = 'admin') {
   const session: LoginResponse = (await (await signedIn).json()).data
   let token = session.accessToken
   page.on('response', async response => {
-    if (response.url().endsWith('/auth/refresh') && response.ok()) token = (await response.json()).data.accessToken
+    if (response.url().endsWith('/auth/refresh') && response.ok() && await completedResponse(response)) {
+      try { token = (await response.json()).data.accessToken } catch { /* the page may navigate away after completion */ }
+    }
   })
   async function record(response: APIResponse, input?: unknown) {
     let body: unknown
@@ -30,9 +32,7 @@ export async function signIn(page: Page, role: keyof typeof USERS = 'admin') {
       return (await response.json()).data as T
     },
     async reload() {
-      const restored = page.waitForResponse(r => r.url().endsWith('/auth/refresh') && r.ok())
-      await page.reload()
-      token = (await (await restored).json()).data.accessToken
+      token = (await reloadAuthenticated(page)).accessToken
     },
     async persisted<T>(path: string, expected: Partial<T>) {
       await api.reload()
