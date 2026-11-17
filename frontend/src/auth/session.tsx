@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { authApi } from '../api/endpoints'
 import { hasSessionHint, onSessionChange, refreshSession, setAccessToken, setSessionHint } from '../api/http'
 import type { LoginResponse, Permission, Role, ShopAccess, UserResponse } from '../api/types'
@@ -27,17 +28,28 @@ const SessionContext = createContext<SessionContextValue | null>(null)
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SessionState>({ status: 'loading' })
   const queryClient = useQueryClient()
+  const currentAccess = useRef<Pick<LoginResponse, 'user' | 'permissions'> | null>(null)
 
   const apply = useCallback((session: LoginResponse | null) => {
     setSessionHint(!!session)
     if (!session) {
+      currentAccess.current = null
       setAccessToken(null)
       setState({ status: 'anonymous' })
       return
     }
+    const previous = currentAccess.current
+    const sameContext = previous?.user.id === session.user.id && previous.user.shopId === session.user.shopId
+    const permissionsChanged = sameContext && (previous.user.role !== session.user.role || previous.permissions.length !== session.permissions.length || previous.permissions.some(p => !session.permissions.includes(p)))
+    currentAccess.current = { user: session.user, permissions: [...session.permissions] }
     setAccessToken(session.accessToken)
+    if (permissionsChanged) {
+      queryClient.clear()
+      if (previous.permissions.some(p => !session.permissions.includes(p))) toast.warning('Tu cuenta no tiene permiso para realizar esta acción. Consulta al administrador.')
+      else toast.info('Tus permisos se actualizaron. La pantalla se ha actualizado.')
+    }
     setState({ status: 'authenticated', user: session.user, shops: session.shops, permissions: session.permissions })
-  }, [])
+  }, [queryClient])
 
   // Restore the session from the refresh cookie on load; keep it fresh before the access token expires.
   useEffect(() => {

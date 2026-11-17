@@ -169,13 +169,38 @@ function clean(params?: object) {
 
 // ===== Errors =====
 
+// Infrastructure diagnostics belong in developer tools, never in customer-facing messages.
+function userText(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.trim()) return undefined
+  const technical = /Request failed|AxiosError|status code|\bHTTP\s*\d{3}|\b(?:Npgsql|SqlException|TypeError|ReferenceError|SyntaxError|stack trace|ECONN|ETIMEDOUT)|System\.|Exception:|violates .*constraint|^The .*(?:field|required|valid)|^(?:Forbidden|Unauthorized|Bad Request|Not Found|Conflict|Internal Server Error)$/i
+  return technical.test(value) ? undefined : value
+}
+
 export function toProblem(err: unknown): ProblemDetails {
   const e = err as AxiosError<ProblemDetails>
+  const status = e?.response?.status
   const data = e?.response?.data
-  if (data && typeof data === 'object' && ('title' in data || 'detail' in data || 'errors' in data)) return { ...data, status: e.response?.status }
-  if (e?.response?.status === 429) return { status: 429, title: 'Demasiadas solicitudes', detail: 'Espera un momento e inténtalo de nuevo.' }
-  if (e?.code === 'ERR_NETWORK') return { title: 'Sin conexión', detail: 'No se pudo conectar con el servidor. Revisa tu conexión.' }
-  return { title: 'Error inesperado', detail: e?.message, status: e?.response?.status }
+  const problem: ProblemDetails = data && typeof data === 'object' && ('title' in data || 'detail' in data || 'errors' in data) ? { ...data, status } : { status }
+  const friendly = (title: string, detail: string): ProblemDetails => ({ ...problem, title, detail, errors: undefined })
+  if (status === 401) {
+    const login = e?.config?.url?.split('?')[0].endsWith('/auth/login')
+    return friendly(login ? 'No pudimos iniciar sesión' : 'Inicia sesión nuevamente', userText(problem.detail) ?? (login ? 'Revisa tu correo y contraseña e inténtalo de nuevo.' : 'Tu sesión terminó. Vuelve a iniciar sesión para continuar.'))
+  }
+  if (status === 403) return friendly('Acceso no permitido', 'Tu cuenta no tiene permiso para realizar esta acción. Consulta al administrador.')
+  if (status === 404) return friendly('Información no disponible', 'No encontramos la información solicitada. Actualiza la página o revisa el enlace.')
+  if (status === 429) return friendly('Demasiadas solicitudes', 'Espera un momento e inténtalo de nuevo.')
+  if (status === 408 || status === 504 || e?.code === 'ECONNABORTED' || e?.code === 'ETIMEDOUT') return friendly('La solicitud tardó demasiado', 'Revisa si la operación se completó antes de volver a intentarlo.')
+  if (status && status >= 500) return friendly('No pudimos completar la solicitud', 'Ocurrió un problema en el servicio. Revisa si la operación se completó antes de volver a intentarlo.')
+  if (e?.code === 'ERR_NETWORK') return friendly('Sin conexión', 'No se pudo conectar con el servidor. Revisa tu conexión.')
+  const errors = problem.errors && typeof problem.errors === 'object' && !Array.isArray(problem.errors)
+    ? Object.fromEntries(Object.entries(problem.errors).map(([key, messages]) => [key, (Array.isArray(messages) ? messages : [messages]).map(message => userText(message) ?? 'Revisa este dato e inténtalo de nuevo.')]))
+    : undefined
+  return {
+    ...problem,
+    title: userText(problem.title) ?? 'No pudimos completar la operación',
+    detail: userText(problem.detail) ?? userText(problem.title) ?? (status === 400 || status === 422 ? 'Revisa los datos e inténtalo de nuevo.' : 'Ocurrió un problema. Inténtalo de nuevo; si continúa, contacta a soporte.'),
+    errors,
+  }
 }
 
 /** One human-readable sentence for toasts. */

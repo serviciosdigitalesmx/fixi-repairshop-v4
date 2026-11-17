@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './web-fixtures'
 import { createOrderViaUi, ensureCashOpen, login, moveOrderTo, uniquePhone } from './helpers'
 
 const QA_ITEMS = ['Enciende', 'Pantalla', 'Táctil', 'Cámaras', 'Audio / parlantes', 'Micrófono', 'Botones', 'Carga', 'WiFi / señal / Bluetooth', 'Face ID / huella']

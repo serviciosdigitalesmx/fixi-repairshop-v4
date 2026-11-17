@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './web-fixtures'
 import { dismissAccountReminders } from './helpers'
 
 test('Mexico commercial invoice: issue, inspect, cancel and reissue with a new folio', async ({ page, request }) => {

@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { ordersApi, usersApi } from '../../api/endpoints'
 import { errorMessage } from '../../api/http'
 import type { OrderStatus, Priority, RepairOrder, UnlockSecret } from '../../api/types'
+import { RequirePermission } from '../../auth/guards'
 import { useSession } from '../../auth/session'
 import { Money, PriorityBadge, SignaturePad, StatusBadge } from '../../components/domain'
 import { Alert, Badge, Button, Card, ConfirmDialog, ErrorState, Field, Input, KeyValue, Loading, Modal, Select, Tabs, Textarea } from '../../components/ui'
@@ -288,7 +289,7 @@ export function OrderDetailPage() {
         {tab === 'photos' ? <PhotosPanel order={o} /> : null}
         {tab === 'messages' ? <MessagesPanel order={o} /> : null}
         {tab === 'history' ? <HistoryPanel order={o} /> : null}
-        {tab === 'suggestions' ? <SuggestionsPanel order={o} /> : null}
+        {tab === 'suggestions' ? <RequirePermission permission="orders.work"><SuggestionsPanel order={o} /></RequirePermission> : null}
       </div>
 
       {target ? <StatusDialog order={o} target={target} onClose={() => setTarget(null)} /> : null}

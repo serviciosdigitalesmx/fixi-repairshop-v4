@@ -150,6 +150,8 @@ jobs:
           ASPNETCORE_URLS: http://127.0.0.1:8080
           ConnectionStrings__RepairShopDb: Host=localhost;Port=5432;Database=repairshop_e2e;Username=postgres;Password=postgres
           Jwt__Key: ci-e2e-signing-key-0123456789abcdef0123456789
+          # Desktop expiry regressions use the same short-lived real JWT as isolated local QA.
+          Jwt__AccessTokenMinutes: "1"
           Seed__Enabled: "true"
           Seed__DemoData: "true"
           App__FrontendBaseUrl: http://localhost:5173
@@ -183,15 +185,26 @@ jobs:
           VITE_PROXY_TARGET: http://127.0.0.1:8080
         run: npm run test:e2e
 
-      - name: Upload report and API log
-        if: failure()
+      - name: Sanitize E2E evidence
+        id: evidence
+        if: always()
+        run: |
+          PRIVATE="$RUNNER_TEMP/fixi-private-evidence"
+          SAFE="$RUNNER_TEMP/fixi-safe-evidence"
+          mkdir -p "$PRIVATE"
+          for folder in frontend/playwright-report frontend/test-results; do
+            if [ -d "$folder" ]; then cp -R "$folder" "$PRIVATE/"; fi
+          done
+          if [ -f "$RUNNER_TEMP/api.log" ]; then cp "$RUNNER_TEMP/api.log" "$PRIVATE/"; fi
+          python3 scripts/sanitize-web-evidence.py "$PRIVATE" "$SAFE"
+          echo "safe=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload sanitized report
+        if: failure() && steps.evidence.outputs.safe == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: e2e-report
-          path: |
-            frontend/playwright-report
-            frontend/test-results
-            ${{ runner.temp }}/api.log
+          path: ${{ runner.temp }}/fixi-safe-evidence
 
   publish:
     name: Publish immutable Fixi 4V image

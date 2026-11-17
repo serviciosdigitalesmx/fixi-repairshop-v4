@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, recordExternalMutation, type Page } from './web-fixtures'
 import { createOrderViaUi, ensureCashOpen, login, moveOrderTo } from './helpers'
 
 async function pickItem(page: Page, placeholder: string | RegExp, text: string) {
@@ -151,7 +151,13 @@ test('the customer approves the quote from the portal', async ({ page, browser }
   await portal.goto(new URL(trackingUrl!).pathname)
   await expect(portal.getByText('La batería dura muy poco')).toBeVisible()
   await portal.getByRole('button', { name: 'Aprobar' }).click()
+  const publicApproval = portal.waitForResponse(r => r.request().method() === 'POST' && /\/quotes\/[^/]+\/approve$/.test(r.url()))
   await portal.getByRole('button', { name: 'Sí, aprobar' }).click()
+  const approvalResponse = await publicApproval
+  expect(approvalResponse.ok()).toBeTruthy()
+  const approved = (await approvalResponse.json()).data.quote
+  expect(approved.status).toBe('Approved')
+  recordExternalMutation(page, `${new URL(page.url()).pathname}/quotes/${approved.id}/approve`, { data: approved })
   await expect(portal.getByText('Aprobado', { exact: true })).toBeVisible()
   await anonymous.close()
 

@@ -18,6 +18,7 @@ export function NotesPanel({ order }: { order: RepairOrder }) {
   const notes = useQuery({ queryKey: ['order', order.id, 'notes'], queryFn: () => ordersApi.notes(order.id) })
   const [body, setBody] = useState('')
   const [isPublic, setIsPublic] = useState(false)
+  const adding = useRef(false)
   const add = useMutation({
     mutationFn: () => ordersApi.addNote(order.id, body.trim(), isPublic),
     onSuccess: () => {
@@ -36,7 +37,11 @@ export function NotesPanel({ order }: { order: RepairOrder }) {
             <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Diagnóstico, avances, lo que hablaste con el cliente…" rows={3} aria-label="Nueva nota" />
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Checkbox label="Visible para el cliente en el enlace de seguimiento" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-              <Button variant="primary" loading={add.isPending} disabled={body.trim().length < 2} onClick={() => add.mutate()}>
+              <Button variant="primary" loading={add.isPending} disabled={body.trim().length < 2} onClick={() => {
+                if (adding.current || body.trim().length < 2) return
+                adding.current = true
+                add.mutate(undefined, { onSettled: () => { adding.current = false } })
+              }}>
                 Agregar nota
               </Button>
             </div>

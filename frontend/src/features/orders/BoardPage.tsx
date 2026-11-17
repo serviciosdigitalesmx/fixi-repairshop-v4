@@ -21,6 +21,8 @@ import { ORDER_STATUS, TONE_CLASSES } from '../../lib/labels'
 export function BoardPage() {
   const [params, setParams] = useSearchParams()
   const { user, can } = useSession()
+  // Board columns contain workshop states; cashier delivery remains in the order detail.
+  const canMove = can('orders.work')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const q = params.get('q') ?? ''
@@ -47,7 +49,7 @@ export function BoardPage() {
   function onDragEnd(e: DragEndEvent) {
     const card = e.active.data.current as OrderCard | undefined
     const target = e.over?.id as OrderStatus | undefined
-    if (!card || !target || card.status === target) return
+    if (!canMove || !card || !target || card.status === target) return
     move.mutate({ id: card.id, status: target })
   }
 
@@ -125,7 +127,7 @@ export function BoardPage() {
             {board.data!.columns.map((col) => (
               <Column key={col.status} status={col.status} label={col.label} count={col.count}>
                 {col.items.map((card) => (
-                  <Card key={card.id} card={card} />
+                  <Card key={card.id} card={card} canMove={canMove} />
                 ))}
               </Column>
             ))}
@@ -150,17 +152,18 @@ function Column({ status, label, count, children }: { status: OrderStatus; label
   )
 }
 
-function Card({ card }: { card: OrderCard }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: card.id, data: card })
+function Card({ card, canMove }: { card: OrderCard; canMove: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: card.id, data: card, disabled: !canMove })
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined
   return (
     <article
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
+      {...(canMove ? listeners : {})}
+      {...(canMove ? attributes : {})}
       className={cn(
-        'fixi-board-card cursor-grab rounded-lg border bg-white p-3 text-sm shadow-sm active:cursor-grabbing',
+        'fixi-board-card rounded-lg border bg-white p-3 text-sm shadow-sm',
+        canMove && 'cursor-grab active:cursor-grabbing',
         isDragging && 'z-10 opacity-80 shadow-lg',
         card.isOverdue ? 'border-rose-300' : card.isStale ? 'border-amber-300' : 'border-slate-200'
       )}
