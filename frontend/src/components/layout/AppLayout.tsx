@@ -79,7 +79,9 @@ function getInitialTheme() {
 }
 
 export function AppLayout() {
-  const { user, shops, can, logout, switchShop } = useSession()
+  const { state, user, shops, can, logout, switchShop } = useSession()
+  // Reset stale dialogs only when the identity, branch or capabilities change; keep normal refreshes intact.
+  const accessKey = state.status === 'authenticated' ? [state.user.id, state.user.shopId, state.user.role, ...[...state.permissions].sort()].join(':') : state.status
   const [mobileOpen, setMobileOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
@@ -193,7 +195,7 @@ export function AppLayout() {
           </div>
         </header>
         <main id="contenido" className="fixi-main-content">
-          <Outlet/>
+          <Outlet key={accessKey}/>
         </main>
       </div>
       <SubscriptionBanner key={`${user?.id}:${user?.shopId}`} />

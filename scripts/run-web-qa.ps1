@@ -1,5 +1,5 @@
 param(
-  [ValidateSet('All','Smoke','Integrity','Inventory','Baseline')][string]$Group = 'All',
+  [ValidateSet('All','Smoke','Integrity','Inventory','Baseline','Permissions')][string]$Group = 'All',
   [string]$QaRoot = 'D:\QA\fixi-web-20261117',
   [switch]$ReuseServices
 )
@@ -41,10 +41,11 @@ if ($state.frontend -ne 'http://127.0.0.1:15173' -or $state.api -ne 'http://127.
 if ($state.head -ne (git -C $repo rev-parse HEAD)) { throw 'QA services were built for another commit; restart without -ReuseServices.' }
 $caseFiles = @('backoffice.spec.ts','commercial-invoices.spec.ts','order-lifecycle.spec.ts','pages.spec.ts','pos.spec.ts','signup.spec.ts','workshop.spec.ts')
 $groups = switch ($Group) {
-  'All' { @(@{name='smoke';files=@('desktop-smoke.spec.ts')},@{name='full';files=@($caseFiles + 'desktop-integrity.spec.ts' + 'desktop-inventory.spec.ts')}) }
+  'All' { @(@{name='smoke';files=@('desktop-smoke.spec.ts')},@{name='full';files=@($caseFiles + 'desktop-integrity.spec.ts' + 'desktop-inventory.spec.ts' + 'desktop-permissions.spec.ts')}) }
   'Smoke' { @(@{name='smoke';files=@('desktop-smoke.spec.ts')}) }
   'Integrity' { @(@{name='integrity';files=@('desktop-integrity.spec.ts')}) }
   'Inventory' { @(@{name='inventory';files=@('desktop-inventory.spec.ts')}) }
+  'Permissions' { @(@{name='permissions';files=@('desktop-permissions.spec.ts')}) }
   'Baseline' { @(@{name='baseline';files=$caseFiles}) }
 }
 $overall = 0
