@@ -1,5 +1,6 @@
 """Copy private Playwright output to shareable evidence, redacting credentials first."""
 import argparse
+import os
 import io
 import json
 import re
@@ -99,8 +100,13 @@ def main():
     parser.add_argument('destination', type=Path)
     args = parser.parse_args()
     source, destination = args.source.resolve(), args.destination.resolve()
-    if source.drive.upper() != 'D:' or destination.drive.upper() != 'D:':
-        raise SystemExit('Evidence must remain on D:')
+    if os.name == 'nt':
+        if source.drive.upper() != 'D:' or destination.drive.upper() != 'D:':
+            raise SystemExit('Evidence must remain on D:')
+    else:
+        runner_temp = os.environ.get('RUNNER_TEMP')
+        if not runner_temp or not all(p.is_relative_to(Path(runner_temp).resolve()) for p in (source, destination)):
+            raise SystemExit('CI evidence must remain inside RUNNER_TEMP')
     if destination.exists():
         raise SystemExit('Refusing to overwrite existing evidence')
     files = [p for p in source.rglob('*') if p.is_file()]
