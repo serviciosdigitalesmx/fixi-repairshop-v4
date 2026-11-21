@@ -96,6 +96,7 @@ export interface UserAdmin {
   role: Role
   isActive: boolean
   isHomeShop: boolean
+  isSuperAdmin?: boolean
   hasPendingInvitation: boolean
   lastLoginAtUtc?: IsoDate | null
   createdAtUtc: IsoDate

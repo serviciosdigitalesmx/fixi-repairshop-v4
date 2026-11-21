@@ -51,13 +51,13 @@ export function UsersTab() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {users.data!.map((u) => (
-              <tr key={u.id} className="cursor-pointer hover:bg-slate-50" onClick={() => setEditing(u)}>
+              <tr key={u.id} className={u.isSuperAdmin ? '' : 'cursor-pointer hover:bg-slate-50'} onClick={() => { if (!u.isSuperAdmin) setEditing(u) }}>
                 <Td>
                   <span className="font-medium text-slate-800">{u.displayName}</span>
                   {u.id === me?.id ? <span className="ml-1 text-xs text-slate-400">(tú)</span> : null}
                   <span className="block text-xs text-slate-500">{u.email}</span>
                 </Td>
-                <Td>{ROLE[u.role]}</Td>
+                <Td>{u.isSuperAdmin ? <span className="text-xs text-slate-500">Cuenta global · gestión en servidor</span> : ROLE[u.role]}</Td>
                 <Td className="text-xs text-slate-600">{u.shops.map((s) => s.shopName).join(', ')}</Td>
                 <Td className="text-xs text-slate-500">{u.lastLoginAtUtc ? relative(u.lastLoginAtUtc) : 'Nunca'}</Td>
                 <Td>

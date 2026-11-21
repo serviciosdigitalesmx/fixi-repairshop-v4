@@ -201,6 +201,8 @@ public sealed class CommandCenterTests(ApiFactory factory)
     {
         var (owner, login) = await Owner();
         var id = login.GetProperty("user").Str("shopId"); var userId = login.GetProperty("user").Str("id");
+        var tenantDirectory = await (await owner.Get("/users")).DataAsync();
+        tenantDirectory.EnumerateArray().Single(u => u.Str("id") == userId).GetProperty("isSuperAdmin").GetBoolean().Should().BeTrue();
         var detail = await (await owner.Get($"/admin/shops/{id}")).DataAsync();
         (await owner.Post($"/admin/shops/{id}/activation", new { isActive = false, reason = "Must not lock out owner", expectedUpdatedAtUtc = detail.GetProperty("shop").Str("updatedAtUtc") })).StatusCode.Should().Be(HttpStatusCode.BadRequest);
         (await owner.Post($"/users/{userId}/reset-link")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
@@ -224,7 +226,8 @@ public sealed class CommandCenterTests(ApiFactory factory)
     [IntegrationFact]
     public async Task Global_access_does_not_disable_tenant_isolation_or_expose_platform_audit_to_tenant_routes()
     {
-        var (owner, _) = await Owner(); var (other, _) = await ApiClient.SignupAsync(factory, "MX");
+        var (owner, ownerLogin) = await Owner(); var (other, _) = await ApiClient.SignupAsync(factory, "MX");
+        (await other.Post($"/users/{ownerLogin.GetProperty("user").Str("id")}/reset-link")).StatusCode.Should().Be(HttpStatusCode.NotFound);
         var customer = await (await other.Post("/customers", new { fullName = "Isolated customer", phone = "5510000001" })).DataAsync();
         (await owner.Get($"/customers/{customer.Str("id")}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
         var catalog = await (await owner.Get("/admin/plans")).DataAsync();

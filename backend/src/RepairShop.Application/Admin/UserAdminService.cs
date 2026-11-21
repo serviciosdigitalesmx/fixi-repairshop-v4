@@ -176,9 +176,9 @@ public sealed class UserAdminService
     private async Task<AppUser> GetManagedUserAsync(Guid shopId, Guid userId, CancellationToken ct)
     {
         var user = await _users.GetByIdAsync(userId, ct) ?? throw new NotFoundException("Usuario no encontrado.");
-        if (user.IsSuperAdmin) throw new ForbiddenException("Las cuentas globales solo se administran desde el servidor por su propietario.");
         if (user.ShopId != shopId && await _access.GetAsync(user.Id, shopId, ct) is null)
             throw new NotFoundException("Usuario no encontrado.");
+        if (user.IsSuperAdmin) throw new ForbiddenException("Las cuentas globales solo se administran desde el servidor por su propietario.");
         return user;
     }
 
@@ -198,7 +198,7 @@ public sealed class UserAdminService
 
         var role = user.ShopId == shopId ? user.Role : accesses.FirstOrDefault(a => a.ShopId == shopId)?.Role ?? user.Role;
         return new UserAdminResponse(user.Id, user.Email, user.DisplayName, role.ToString(), user.IsActive, user.ShopId == shopId,
-            user.HasPendingInvitation, user.LastLoginAtUtc, user.CreatedAtUtc, list);
+            user.HasPendingInvitation, user.LastLoginAtUtc, user.CreatedAtUtc, list, user.IsSuperAdmin);
     }
 
     private async Task EnqueueEmailAsync(Guid shopId, AppUser user, string title, string body, string kind, DateTime now, CancellationToken ct)
