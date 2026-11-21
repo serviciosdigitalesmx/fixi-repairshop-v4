@@ -196,6 +196,7 @@ jobs:
             if [ -d "$folder" ]; then cp -R "$folder" "$PRIVATE/"; fi
           done
           if [ -f "$RUNNER_TEMP/api.log" ]; then cp "$RUNNER_TEMP/api.log" "$PRIVATE/"; fi
+          python3 -m unittest discover -s scripts -p 'test_sanitize_web_evidence.py'
           python3 scripts/sanitize-web-evidence.py "$PRIVATE" "$SAFE"
           echo "safe=true" >> "$GITHUB_OUTPUT"
 
