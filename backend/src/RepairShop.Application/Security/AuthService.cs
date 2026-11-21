@@ -273,7 +273,10 @@ public sealed class AuthService
     {
         var accesses = await _access.ListByUserAsync(user.Id, ct);
         var shopIds = accesses.Select(a => a.ShopId).Append(user.ShopId).Distinct().ToList();
-        var shops = (await _shops.GetByIdsAsync(shopIds, ct)).Where(s => s.IsActive).ToDictionary(s => s.Id);
+        var accessible = await _shops.GetByIdsAsync(shopIds, ct);
+        var organizationIds = accessible.Select(s => s.OrganizationId).Distinct().ToList();
+        var activeOrganizations = (await _shops.GetByIdsAsync(organizationIds, ct)).Where(s => !s.IsPlatformSuspended).Select(s => s.Id).ToHashSet();
+        var shops = accessible.Where(s => s.IsActive && !s.IsPlatformSuspended && activeOrganizations.Contains(s.OrganizationId)).ToDictionary(s => s.Id);
 
         var result = new List<ShopAccessInfo>();
         if (shops.TryGetValue(user.ShopId, out var home)) result.Add(new ShopAccessInfo(home.Id, home.Name, home.OrganizationId, user.Role, true));
@@ -337,7 +340,7 @@ public sealed class AuthService
     }
 
     private static UserResponse ToUserResponse(AppUser user, ShopAccessInfo shop, Shop? shopEntity)
-        => new(user.Id, shop.ShopId, user.Email, user.DisplayName, shop.Role.ToString(), shopEntity?.Name ?? shop.ShopName, shop.OrganizationId, user.IsEmailVerified);
+        => new(user.Id, shop.ShopId, user.Email, user.DisplayName, shop.Role.ToString(), shopEntity?.Name ?? shop.ShopName, shop.OrganizationId, user.IsEmailVerified, user.IsSuperAdmin);
 }
 
 public sealed record ShopAccessInfo(Guid ShopId, string ShopName, Guid OrganizationId, UserRole Role, bool IsHome)

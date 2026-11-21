@@ -57,6 +57,7 @@ export interface UserResponse {
   shopName?: string | null
   organizationId?: Guid | null
   emailVerified?: boolean
+  isSuperAdmin?: boolean
 }
 
 export interface ShopAccess {
@@ -95,6 +96,7 @@ export interface UserAdmin {
   role: Role
   isActive: boolean
   isHomeShop: boolean
+  isSuperAdmin?: boolean
   hasPendingInvitation: boolean
   lastLoginAtUtc?: IsoDate | null
   createdAtUtc: IsoDate

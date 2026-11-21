@@ -37,13 +37,20 @@ public static class SecurityStampValidator
         }
 
         var services = context.HttpContext.RequestServices;
+        var db = services.GetRequiredService<RepairShopDbContext>();
+        var shopId = CurrentUser.GetShopId(principal);
+        if (!await db.Shops.AsNoTracking().AnyAsync(s => s.Id == shopId && s.IsActive && !s.IsPlatformSuspended &&
+            db.Shops.Any(root => root.Id == s.OrganizationId && !root.IsPlatformSuspended), context.HttpContext.RequestAborted))
+        {
+            context.Fail("Este taller está suspendido. Contacta al propietario de Fixi.");
+            return;
+        }
         var cache = services.GetRequiredService<IMemoryCache>();
         var key = Key(userId);
 
         if (cache.TryGetValue<UserStamp>(key, out var cached) && cached is not null && cached.IsActive && cached.Stamp == stamp)
             return;
 
-        var db = services.GetRequiredService<RepairShopDbContext>();
         var current = await db.Users.AsNoTracking()
             .Where(u => u.Id == userId)
             .Select(u => new UserStamp(u.SecurityStamp, u.IsActive))

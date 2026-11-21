@@ -16,7 +16,8 @@ public sealed record UserAdminResponse(
     bool HasPendingInvitation,
     DateTime? LastLoginAtUtc,
     DateTime CreatedAtUtc,
-    IReadOnlyList<ShopAccessResponse> Shops);
+    IReadOnlyList<ShopAccessResponse> Shops,
+    bool IsSuperAdmin = false);
 
 public sealed record CreateUserRequest(
     [Required] string Email,

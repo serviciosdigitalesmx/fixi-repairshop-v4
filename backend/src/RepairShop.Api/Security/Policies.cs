@@ -10,6 +10,7 @@ public static class Policies
     /// <summary>Any authenticated staff member (read access to the shop).</summary>
     public const string StaffOnly = "StaffOnly";
     public const string AdminOnly = "AdminOnly";
+    public const string SuperAdmin = "SuperAdmin";
     public const string OrdersManage = "OrdersManage";
     public const string OrdersWork = "OrdersWork";
     public const string Sales = "Sales";
@@ -20,6 +21,7 @@ public static class Policies
 
     public static void Register(AuthorizationOptions options)
     {
+        options.AddPolicy(SuperAdmin, p => p.RequireAuthenticatedUser().AddRequirements(new SuperAdminRequirement()));
         options.AddPolicy(StaffOnly, p => p.RequireAuthenticatedUser().RequireClaim(ClaimNames.ShopId));
         options.AddPolicy(AdminOnly, p => RequirePermission(p, Permissions.Admin));
         options.AddPolicy(OrdersManage, p => RequirePermission(p, Permissions.OrdersManage));

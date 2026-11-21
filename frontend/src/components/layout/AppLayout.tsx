@@ -150,6 +150,7 @@ export function AppLayout() {
         <span>{user?.shopName ?? 'Taller'}</span><b>Operación activa</b>
       </div>
       <div className="fixi-nav-scroll">
+        {user?.isSuperAdmin && <NavLink to="/admin" className="fixi-quiet-link" onClick={() => setMobileOpen(false)}>FIXI Command Center</NavLink>}
         <p className="fixi-nav-caption">Taller</p>
         {primary?.items.map(navLink)}
         {secondary.map(section => <details className="fixi-nav-group" key={section.section} open={navSections[section.section] ?? (section.section === 'Administración' || section.items.some(i => location.pathname === i.to || location.pathname.startsWith(i.to + '/')))} onToggle={event => {

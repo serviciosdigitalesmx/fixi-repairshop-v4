@@ -21,6 +21,14 @@ public sealed class Shop
     public string? Country { get; private set; }
 
     public bool IsActive { get; private set; } = true;
+    // Global enforcement is separate from the branch administrator's operational switch.
+    public bool IsPlatformSuspended { get; private set; }
+
+    public void SetPlatformSuspended(bool suspended, DateTime nowUtc)
+    {
+        IsPlatformSuspended = suspended;
+        UpdatedAtUtc = nowUtc;
+    }
 
     // ===== Settings =====
     public string? LegalName { get; private set; }
@@ -103,12 +111,23 @@ public sealed class Shop
 
     public void SetActive(bool isActive, DateTime nowUtc)
     {
+        EnsurePlatformAllowsActivation(isActive);
         IsActive = isActive;
         UpdatedAtUtc = nowUtc;
     }
 
     // Backward-compatible convenience overload
-    public void SetActive(bool isActive) => IsActive = isActive;
+    public void SetActive(bool isActive)
+    {
+        EnsurePlatformAllowsActivation(isActive);
+        IsActive = isActive;
+    }
+
+    private void EnsurePlatformAllowsActivation(bool isActive)
+    {
+        if (isActive && IsPlatformSuspended)
+            throw new DomainException("Este taller fue suspendido por la plataforma. Contacta al propietario de Fixi para reactivarlo.");
+    }
 
     public void UpdateBusiness(string? legalName, string? taxId, CustomerTaxCondition taxCondition, string? email, DateTime nowUtc)
     {

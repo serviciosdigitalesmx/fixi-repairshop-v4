@@ -7,7 +7,7 @@ public sealed class BillingOptions
     public const string SectionName = "Billing";
 
     /// <summary>Days of free trial for new signups (no card required).</summary>
-    public int TrialDays { get; set; } = 14;
+    public int TrialDays { get; set; } = 15;
 
     /// <summary>
     /// Development and tests: activate subscriptions without charging when the provider is not configured.

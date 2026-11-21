@@ -19,7 +19,7 @@ test('a new shop signs up, gets the trial and picks a plan', async ({ page }) =>
   await page.screenshot({ path: 'test-results/registro.png', fullPage: true })
   await page.getByRole('button', { name: 'Crear mi cuenta' }).click()
 
-  await expect(page.getByText(/Prueba gratis: te quedan 14 días/)).toBeVisible()
+  await expect(page.getByText(/Prueba gratis: te quedan 15 días/)).toBeVisible()
   await expect(page.getByText(/Confirma tu correo electrónico/)).toBeVisible()
   await page.screenshot({ path: 'test-results/inicio-prueba.png', fullPage: true })
 

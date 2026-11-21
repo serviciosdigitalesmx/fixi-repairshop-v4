@@ -70,7 +70,7 @@ services:
       Ai__Anthropic__ApiKey: ${ANTHROPIC_API_KEY:-}
       # Suscripciones de los talleres: alta pública con prueba gratis y cobro mensual (ver README).
       Billing__SignupEnabled: ${SIGNUP_ENABLED:-false}
-      Billing__TrialDays: ${TRIAL_DAYS:-14}
+      Billing__TrialDays: ${TRIAL_DAYS:-15}
       Billing__UsdPrices__Basic: ${PRICE_USD_BASIC:-25}
       Billing__UsdPrices__Standard: ${PRICE_USD_STANDARD:-45}
       Billing__UsdPrices__Pro: ${PRICE_USD_PRO:-79}
