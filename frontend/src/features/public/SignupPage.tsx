@@ -59,7 +59,7 @@ export function SignupPage() {
   }
 
   if (config.isLoading) return <Loading />
-  const trialDays = config.data?.trialDays ?? 14
+  const trialDays = config.data?.trialDays ?? 15
 
   if (config.data && !config.data.signupEnabled) {
     return (

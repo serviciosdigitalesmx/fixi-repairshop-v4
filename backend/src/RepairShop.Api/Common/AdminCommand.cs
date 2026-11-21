@@ -21,10 +21,40 @@ internal static class AdminCommand
     public static bool Matches(string[] args)
         => args.Length >= 2
            && string.Equals(args[0], "admin", StringComparison.OrdinalIgnoreCase)
-           && (string.Equals(args[1], "create", StringComparison.OrdinalIgnoreCase) || string.Equals(args[1], "plan", StringComparison.OrdinalIgnoreCase));
+           && (string.Equals(args[1], "create", StringComparison.OrdinalIgnoreCase) || string.Equals(args[1], "plan", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(args[1], "superadmin", StringComparison.OrdinalIgnoreCase));
 
     public static Task<int> RunAsync(WebApplication app, string[] args)
-        => string.Equals(args[1], "plan", StringComparison.OrdinalIgnoreCase) ? GrantPlanAsync(app, args) : CreateAsync(app, args);
+        => string.Equals(args[1], "superadmin", StringComparison.OrdinalIgnoreCase) ? SuperAdminAsync(app, args)
+            : string.Equals(args[1], "plan", StringComparison.OrdinalIgnoreCase) ? GrantPlanAsync(app, args) : CreateAsync(app, args);
+
+    // Explicit server access is required. No HTTP route, signup, invitation or seed grants this privilege.
+    private static async Task<int> SuperAdminAsync(WebApplication app, string[] args)
+    {
+        if (args.Length != 4 || args[3] is not ("grant" or "revoke"))
+        {
+            Console.Error.WriteLine("Uso: admin superadmin <email existente> <grant|revoke>");
+            return 2;
+        }
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<RepairShopDbContext>();
+        var email = AppUser.NormalizeEmail(args[2]);
+        var user = await db.Users.SingleOrDefaultAsync(u => u.Email == email);
+        if (user is null || args[3] == "grant" && (!user.IsActive || !user.IsEmailVerified || user.HasPendingInvitation))
+        {
+            Console.Error.WriteLine("La cuenta debe existir, estar activa y tener el correo verificado y la invitación aceptada.");
+            return 1;
+        }
+        var now = scope.ServiceProvider.GetRequiredService<IDateTimeProvider>().UtcNow;
+        user.SetSuperAdmin(args[3] == "grant", now);
+        foreach (var token in await db.RefreshTokens.Where(t => t.UserId == user.Id && t.RevokedAtUtc == null).ToListAsync())
+            token.Revoke("platform_privilege_changed", now);
+        db.AuditEvents.Add(new RepairShop.Domain.Auditing.AuditEvent(user.ShopId, "platform.privilege", user.Id,
+            "superadmin_" + args[3], null, null, "{\"source\":\"server-command\"}", now));
+        await db.SaveChangesAsync();
+        Console.WriteLine("Privilegio global actualizado y sesiones revocadas. Inicia sesión nuevamente.");
+        return 0;
+    }
 
     /// <summary>Gives the organization of the user a complimentary plan (no charges, never expires).</summary>
     private static async Task<int> GrantPlanAsync(WebApplication app, string[] args)

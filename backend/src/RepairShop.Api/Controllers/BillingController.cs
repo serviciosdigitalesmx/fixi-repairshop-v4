@@ -30,8 +30,8 @@ public sealed class BillingController : ControllerBase
     [HttpGet("plans")]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimits.Public)]
-    public ActionResult<ApiResponse<PlansResponse>> PlansList([FromQuery] string? country)
-        => Ok(Envelope.Ok(_subscriptions.ListPlans(country)));
+    public async Task<ActionResult<ApiResponse<PlansResponse>>> PlansList([FromQuery] string? country, CancellationToken ct)
+        => Ok(Envelope.Ok(await _subscriptions.ListPlansAsync(country, ct)));
 
     /// <summary>Public settings the web app needs before signing in (signup switch, Paddle.js token).</summary>
     [HttpGet("config")]

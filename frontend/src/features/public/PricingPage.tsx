@@ -54,7 +54,7 @@ export function PricingPage() {
           <p>
             Órdenes, cotizaciones, stock, caja y avisos a tus clientes en un solo lugar. Usuarios ilimitados en todos los planes.
           </p>
-          <span className="fx-pricing-trial">{plans.data?.trialDays ?? 14} días gratis, sin tarjeta.</span>
+          <span className="fx-pricing-trial">{plans.data?.trialDays ?? 15} días gratis, sin tarjeta.</span>
           <label className="fx-country-select">
             Precios para
             <Select value={country} onChange={(e) => setCountry(e.target.value)} className="w-48">

@@ -58,6 +58,7 @@ public sealed class RepairShopDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<ExchangeRate> ExchangeRates => Set<ExchangeRate>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<PlanPrice> PlanPrices => Set<PlanPrice>();
 
     // CRM
     public DbSet<Customer> Customers => Set<Customer>();
@@ -116,6 +117,10 @@ public sealed class RepairShopDbContext : DbContext, IDataProtectionKeyContext
         {
             apply.MakeGenericMethod(entity.ClrType).Invoke(this, new object[] { modelBuilder });
         }
+        // Platform audit may contain identifiers from other organizations. Only the explicitly
+        // authorized Command Center query (IgnoreQueryFilters) can read these events.
+        modelBuilder.Entity<AuditEvent>().HasQueryFilter(e =>
+            (CurrentShopId == null || e.ShopId == CurrentShopId) && !e.EntityType.StartsWith("platform."));
     }
 
     private void ApplyShopFilter<T>(ModelBuilder modelBuilder) where T : class, IShopScoped

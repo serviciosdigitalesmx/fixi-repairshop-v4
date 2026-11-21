@@ -16,6 +16,13 @@ EMBEDDED = re.compile(r"data:application/zip;base64,([A-Za-z0-9+/=]+)")
 secrets = {"Admin123456", "Tech123456", "Recepcion123", "Caja123456", "Fixi26", "InvoiceTest12345"}
 
 
+def decode_embedded(value):
+    data = base64.b64decode(value, validate=True)
+    if not zipfile.is_zipfile(io.BytesIO(data)):
+        raise ValueError('Embedded ZIP evidence is invalid; refusing publication')
+    return data
+
+
 def collect(obj):
     if isinstance(obj, dict):
         for key, value in obj.items():
@@ -59,7 +66,7 @@ def scan(data):
     if text is None:
         return
     for match in EMBEDDED.finditer(text):
-        scan(base64.b64decode(match.group(1)))
+        scan(decode_embedded(match.group(1)))
     for line in text.splitlines():
         try:
             collect(json.loads(line))
@@ -69,6 +76,15 @@ def scan(data):
         collect(json.loads(text))
     except (ValueError, RecursionError):
         pass
+
+
+def redact_plain_text(text):
+    for secret in sorted(secrets, key=len, reverse=True):
+        if len(secret) >= 4:
+            text = text.replace(secret, '[REDACTED]')
+    text = JWT.sub('[REDACTED_JWT]', text)
+    text = LINK.sub(r'\1[REDACTED]', text)
+    return TRACK.sub(r'\1[REDACTED]', text)
 
 
 def redact(data):
@@ -84,14 +100,38 @@ def redact(data):
     text = text_of(data)
     if text is None:
         return data
-    text = EMBEDDED.sub(lambda match: 'data:application/zip;base64,' + base64.b64encode(redact(base64.b64decode(match.group(1)))).decode(), text)
-    for secret in sorted(secrets, key=len, reverse=True):
-        if len(secret) >= 4:
-            text = text.replace(secret, '[REDACTED]')
-    text = JWT.sub('[REDACTED_JWT]', text)
-    text = LINK.sub(r'\1[REDACTED]', text)
-    text = TRACK.sub(r'\1[REDACTED]', text)
-    return text.encode('utf-8')
+    # Redact decoded archives, never their encoded bytes: a short secret can coincidentally
+    # appear in Base64. Replacing that substring corrupts the ZIP and breaks verification.
+    parts, position = [], 0
+    for match in EMBEDDED.finditer(text):
+        parts.append(redact_plain_text(text[position:match.start()]))
+        payload = redact(decode_embedded(match.group(1)))
+        parts.append('data:application/zip;base64,' + base64.b64encode(payload).decode())
+        position = match.end()
+    parts.append(redact_plain_text(text[position:]))
+    return ''.join(parts).encode('utf-8')
+
+
+def verify(data, location, findings):
+    if zipfile.is_zipfile(io.BytesIO(data)):
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            for name in archive.namelist():
+                verify(archive.read(name), f'{location}:{name}', findings)
+        return
+    text = text_of(data)
+    if text is None:
+        return
+
+    def verify_plain(segment):
+        if JWT.search(segment) or any(s in segment for s in secrets if len(s) >= 4 and '[REDACTED' not in s):
+            findings.append(location)
+
+    position = 0
+    for index, match in enumerate(EMBEDDED.finditer(text)):
+        verify_plain(text[position:match.start()])
+        verify(decode_embedded(match.group(1)), f'{location}:embedded-{index}', findings)
+        position = match.end()
+    verify_plain(text[position:])
 
 
 def main():
@@ -133,22 +173,9 @@ def main():
         else:
             target.write_bytes(redact(data))
     findings = []
-    def verify(data, location):
-        if zipfile.is_zipfile(io.BytesIO(data)):
-            with zipfile.ZipFile(io.BytesIO(data)) as archive:
-                for name in archive.namelist():
-                    verify(archive.read(name), f'{location}:{name}')
-            return
-        text = text_of(data)
-        if text is None:
-            return
-        if JWT.search(text) or any(s in text for s in secrets if len(s) >= 4 and '[REDACTED' not in s):
-            findings.append(location)
-        for index, match in enumerate(EMBEDDED.finditer(text)):
-            verify(base64.b64decode(match.group(1)), f'{location}:embedded-{index}')
     for item in destination.rglob('*'):
         if item.is_file():
-            verify(item.read_bytes(), str(item.relative_to(destination)))
+            verify(item.read_bytes(), str(item.relative_to(destination)), findings)
     manifest = {'files': len(files), 'secretValuesRedacted': len(secrets), 'leakScanFindings': findings,
                 'note': 'HTTP logs omit credential headers. Recordings mask invitation/tracking text. Trace bodies and sources are redacted; PDF bodies are withheld.'}
     (destination / 'privacy-manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')

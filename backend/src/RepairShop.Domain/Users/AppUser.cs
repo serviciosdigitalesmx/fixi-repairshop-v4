@@ -17,6 +17,15 @@ public sealed class AppUser
     public string PasswordHash { get; private set; } = null!;
 
     public bool IsActive { get; private set; } = true;
+    // Global privilege, deliberately independent from tenant roles. Only the offline owner command grants it.
+    public bool IsSuperAdmin { get; private set; }
+
+    public void SetSuperAdmin(bool enabled, DateTime nowUtc)
+    {
+        if (IsSuperAdmin == enabled) return;
+        IsSuperAdmin = enabled;
+        RotateSecurityStamp(nowUtc);
+    }
 
     // Changes whenever credentials/permissions change: invalidates issued access tokens.
     public string SecurityStamp { get; private set; } = NewStamp();

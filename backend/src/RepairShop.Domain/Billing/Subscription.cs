@@ -191,6 +191,30 @@ public sealed class Subscription
         UpdatedAtUtc = nowUtc;
     }
 
+    public void RestartTrial(DateTime nowUtc)
+    {
+        EnsureLocallyManaged();
+        Plan = PlanId.Pro;
+        Status = SubscriptionStatus.Trialing;
+        Provider = BillingProvider.None;
+        ProviderSubscriptionId = null;
+        ProviderCustomerId = null;
+        PendingPlan = null;
+        Amount = null;
+        Currency = null;
+        TrialEndsAtUtc = nowUtc.AddDays(15);
+        CurrentPeriodEndsAtUtc = null;
+        CanceledAtUtc = null;
+        LastEventAtUtc = null;
+        UpdatedAtUtc = nowUtc;
+    }
+
+    public void EnsureLocallyManaged()
+    {
+        if (Provider is BillingProvider.MercadoPago or BillingProvider.Paddle && ProviderSubscriptionId is not null)
+            throw new DomainException("La suscripción está gestionada por un proveedor de cobro. Cancela o modifica el contrato desde su flujo de facturación antes de cambiarla administrativamente.");
+    }
+
     /// <summary>Platform owner grants the plan for free (admin command).</summary>
     public void GrantComplimentary(PlanId plan, DateTime nowUtc)
     {

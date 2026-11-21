@@ -87,6 +87,23 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                     b.ToTable("audit_events", (string)null);
                 });
 
+            modelBuilder.Entity("RepairShop.Domain.Billing.PlanPrice", b =>
+                {
+                    b.Property<int>("Plan")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("MonthlyPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Plan");
+
+                    b.ToTable("platform_plan_prices", (string)null);
+                });
+
             modelBuilder.Entity("RepairShop.Domain.Billing.Subscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2462,6 +2479,11 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsPlatformSuspended")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("LegalName")
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
@@ -2623,6 +2645,11 @@ namespace RepairShop.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
+
+                    b.Property<bool>("IsSuperAdmin")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime?>("LastLoginAtUtc")
                         .HasColumnType("timestamp with time zone");

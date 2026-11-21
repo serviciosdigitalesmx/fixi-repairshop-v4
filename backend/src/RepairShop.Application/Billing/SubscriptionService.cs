@@ -30,6 +30,7 @@ public sealed class SubscriptionService
     private readonly IAppLinks _links;
     private readonly IAuditLog _audit;
     private readonly BillingOptions _options;
+    private readonly IPlanPricing _pricing;
     private readonly ILogger<SubscriptionService> _logger;
 
     public SubscriptionService(
@@ -42,7 +43,8 @@ public sealed class SubscriptionService
         IAppLinks links,
         IAuditLog audit,
         IOptions<BillingOptions> options,
-        ILogger<SubscriptionService> logger)
+        ILogger<SubscriptionService> logger,
+        IPlanPricing pricing)
     {
         _subscriptions = subscriptions;
         _shops = shops;
@@ -54,6 +56,7 @@ public sealed class SubscriptionService
         _audit = audit;
         _options = options.Value;
         _logger = logger;
+        _pricing = pricing;
     }
 
     public static string CurrencyFor(string country) => country.ToUpperInvariant() switch
@@ -69,11 +72,11 @@ public sealed class SubscriptionService
         _ => BillingProvider.Paddle
     };
 
-    public PlansResponse ListPlans(string? country)
+    public async Task<PlansResponse> ListPlansAsync(string? country, CancellationToken ct)
     {
         var c = string.IsNullOrWhiteSpace(country) ? "US" : Subscription.NormalizeCountry(country);
         var currency = CurrencyFor(c);
-        return new PlansResponse(c, currency, _options.TrialDays, Plans.All.Select(p => ToResponse(p, currency)).ToList());
+        return new PlansResponse(c, currency, _options.TrialDays, await PlanResponsesAsync(currency, ct));
     }
 
     public async Task<SubscriptionAccess> GetAccessAsync(Guid organizationId, CancellationToken ct)
@@ -109,7 +112,7 @@ public sealed class SubscriptionService
             throw new DomainException("Tu plan está bonificado. Escribinos si querés cambiarlo.");
 
         var currency = CurrencyFor(sub.BillingCountry);
-        var price = _options.PriceFor(planId, currency) ?? throw new DomainException("Ese plan no tiene precio configurado.");
+        var price = await _pricing.PriceAsync(planId, currency, ct) ?? throw new DomainException("Ese plan no tiene precio configurado.");
 
         if (sub.HasLiveProviderSubscription)
         {
@@ -296,11 +299,16 @@ public sealed class SubscriptionService
             sub.HasLiveProviderSubscription,
             checkoutAvailable,
             emailVerified,
-            Plans.All.Select(p => ToResponse(p, currency)).ToList());
+            await PlanResponsesAsync(currency, ct));
     }
 
-    private PlanResponse ToResponse(PlanDefinition p, string currency)
-        => new(p.Id.ToString(), p.Name, p.MaxBranches, p.Modules, _options.PriceFor(p.Id, currency), currency);
+    private async Task<List<PlanResponse>> PlanResponsesAsync(string currency, CancellationToken ct)
+    {
+        var result = new List<PlanResponse>();
+        foreach (var p in Plans.All)
+            result.Add(new(p.Id.ToString(), p.Name, p.MaxBranches, p.Modules, await _pricing.PriceAsync(p.Id, currency, ct), currency));
+        return result;
+    }
 
     private async Task AuditAsync(Guid organizationId, string action, Actor actor, object data, CancellationToken ct)
     {

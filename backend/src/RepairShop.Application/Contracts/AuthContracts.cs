@@ -23,7 +23,8 @@ public sealed record UserResponse(
     string Role,
     string? ShopName = null,
     Guid? OrganizationId = null,
-    bool EmailVerified = true
+    bool EmailVerified = true,
+    bool IsSuperAdmin = false
 );
 
 public sealed record ShopAccessResponse(Guid ShopId, string ShopName, string Role, bool IsHome);
