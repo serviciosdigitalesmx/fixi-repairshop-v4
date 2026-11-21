@@ -23,6 +23,7 @@ internal sealed class ShopConfiguration : IEntityTypeConfiguration<Shop>
         b.Property(x => x.City).HasMaxLength(80);
         b.Property(x => x.Country).HasMaxLength(80);
         b.Property(x => x.IsActive).IsRequired();
+        b.Property(x => x.IsPlatformSuspended).IsRequired().HasDefaultValue(false);
 
         b.Property(x => x.LegalName).HasMaxLength(160);
         b.Property(x => x.TaxId).HasMaxLength(20);
@@ -73,6 +74,7 @@ internal sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
 
         b.Property(x => x.DisplayName).HasMaxLength(120).IsRequired();
         b.Property(x => x.Role).IsRequired();
+        b.Property(x => x.IsSuperAdmin).IsRequired().HasDefaultValue(false);
         b.Property(x => x.PasswordHash).HasMaxLength(400).IsRequired();
         b.Property(x => x.SecurityStamp).HasMaxLength(64).IsRequired();
         b.Property(x => x.PendingTokenHash).HasMaxLength(128);

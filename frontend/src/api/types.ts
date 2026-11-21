@@ -57,6 +57,7 @@ export interface UserResponse {
   shopName?: string | null
   organizationId?: Guid | null
   emailVerified?: boolean
+  isSuperAdmin?: boolean
 }
 
 export interface ShopAccess {

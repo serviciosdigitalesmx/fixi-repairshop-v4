@@ -176,6 +176,7 @@ public sealed class UserAdminService
     private async Task<AppUser> GetManagedUserAsync(Guid shopId, Guid userId, CancellationToken ct)
     {
         var user = await _users.GetByIdAsync(userId, ct) ?? throw new NotFoundException("Usuario no encontrado.");
+        if (user.IsSuperAdmin) throw new ForbiddenException("Las cuentas globales solo se administran desde el servidor por su propietario.");
         if (user.ShopId != shopId && await _access.GetAsync(user.Id, shopId, ct) is null)
             throw new NotFoundException("Usuario no encontrado.");
         return user;

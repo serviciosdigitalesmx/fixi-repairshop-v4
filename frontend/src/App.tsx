@@ -36,6 +36,15 @@ const VerifyEmailPage = page(() => import('./features/public/SignupPage'), 'Veri
 const PricingPage = page(() => import('./features/public/PricingPage'), 'PricingPage')
 const TermsPage = page(() => import('./features/public/LegalPages'), 'TermsPage')
 const PrivacyPage = page(() => import('./features/public/LegalPages'), 'PrivacyPage')
+const CommandCenterGate = page(() => import('./features/command-center/Layout'), 'CommandCenterGate')
+const CommandDashboard = page(() => import('./features/command-center/Pages'), 'CommandDashboard')
+const CommandShops = page(() => import('./features/command-center/Pages'), 'CommandShops')
+const CommandShopDetail = page(() => import('./features/command-center/Pages'), 'CommandShopDetail')
+const CommandUsers = page(() => import('./features/command-center/Pages'), 'CommandUsers')
+const CommandPlans = page(() => import('./features/command-center/Pages'), 'CommandPlans')
+const CommandSubscriptions = page(() => import('./features/command-center/Pages'), 'CommandSubscriptions')
+const CommandAudit = page(() => import('./features/command-center/Pages'), 'CommandAudit')
+const CommandNotFound = page(() => import('./features/command-center/Layout'), 'CommandNotFound')
 
 function Guard({ permission, children }: { permission: Permission; children: ReactNode }) {
   return <RequirePermission permission={permission}>{children}</RequirePermission>
@@ -55,6 +64,16 @@ export default function App() {
         <Route path="/precios" element={<PricingPage />} />
         <Route path="/terminos" element={<TermsPage />} />
         <Route path="/privacidad" element={<PrivacyPage />} />
+        <Route path="/admin" element={<RequireAuth><CommandCenterGate /></RequireAuth>}>
+          <Route index element={<CommandDashboard />} />
+          <Route path="shops" element={<CommandShops />} />
+          <Route path="shops/:id" element={<CommandShopDetail />} />
+          <Route path="users" element={<CommandUsers />} />
+          <Route path="plans" element={<CommandPlans />} />
+          <Route path="subscriptions" element={<CommandSubscriptions />} />
+          <Route path="audit" element={<CommandAudit />} />
+          <Route path="*" element={<CommandNotFound />} />
+        </Route>
 
         <Route
           element={

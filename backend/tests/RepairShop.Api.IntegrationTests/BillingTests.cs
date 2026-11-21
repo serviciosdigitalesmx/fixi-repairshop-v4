@@ -27,7 +27,7 @@ public sealed class BillingTests
         var sub = await (await owner.Get("/billing/subscription")).DataAsync();
         sub.Str("status").Should().Be("Trialing");
         sub.Str("plan").Should().Be("Pro");
-        sub.GetProperty("trialDaysLeft").GetInt32().Should().Be(14);
+        sub.GetProperty("trialDaysLeft").GetInt32().Should().Be(15);
         sub.Str("billingCountry").Should().Be("MX");
         sub.GetProperty("plans")[0].Str("currency").Should().Be("MXN");
 

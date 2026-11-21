@@ -174,6 +174,8 @@ builder.Services
         options.Events = new JwtBearerEvents { OnTokenValidated = SecurityStampValidator.ValidateAsync };
     });
 builder.Services.AddAuthorization(Policies.Register);
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, SuperAdminHandler>();
+builder.Services.AddScoped<IPlanPricing, RepairShop.Infrastructure.Billing.PlanPricing>();
 
 // ===== CORS (credentials are needed for the refresh cookie) =====
 builder.Services.AddCors(options =>
